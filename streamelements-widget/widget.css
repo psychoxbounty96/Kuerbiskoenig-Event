@@ -1,0 +1,41 @@
+* { box-sizing: border-box; }
+body { margin: 0; overflow: hidden; background: transparent; color: #f4eadb; font-family: Inter, Arial, sans-serif; }
+.pumpkin-widget { bottom: clamp(22px,4vh,56px); display: grid; gap: 10px; left: clamp(22px,3vw,64px); position: fixed; width: clamp(390px,24vw,490px); }
+.boss-card,.minion-card,.identity-card { backdrop-filter: blur(12px); background: linear-gradient(105deg,rgba(34,20,22,.97),rgba(12,10,15,.94)); border: 1px solid rgba(205,175,126,.34); box-shadow: 0 20px 50px rgba(0,0,0,.45); padding: 16px 20px; }
+.identity-card { max-width: 360px; }
+.identity-card strong,.identity-card span,#event-state { display:block; }
+.identity-card strong { font-family:Georgia,serif;font-size:20px;margin-top:5px; }
+.identity-card span,#event-state { color:#cfc3b4;font-size:13px;margin-top:7px; }
+small { color:#d59a53;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase; }
+h1 { font-family:Georgia,serif;font-size:25px;margin:4px 0 10px; }
+.health-track { background:#201b21;border:1px solid rgba(205,175,126,.28);height:17px;overflow:hidden; }
+.health-track i { background:linear-gradient(90deg,#a54325,#f28a2e);display:block;height:100%;transition:width 900ms ease;width:0; }
+#boss-hp { display:block;font-size:13px;margin-top:7px; }
+.minion-card { border-color:rgba(166,98,203,.62);display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;max-width:490px;animation:minion-in .35s ease; }
+.minion-card .minion-icon { font-size:34px;filter:drop-shadow(0 0 9px rgba(166,98,203,.55)); }
+.minion-card h2 { font-family:Georgia,serif;font-size:20px;margin:4px 0;text-transform:uppercase; }
+.minion-card p { color:#cfc3b4;font-size:12px;margin:4px 0; }
+.minion-card .command { color:#fff2de;font-size:16px;font-weight:900; }
+.minion-card .progress { color:#b89ec6;font-weight:700; }
+.minion-card time { color:#ffad5d;font-family:ui-monospace,monospace;font-size:20px;font-weight:800; }
+.minion-card--success { border-color:#67c38c; }
+.minion-card--failure { border-color:#d85d44; }
+.minion-visual { display:flex;flex-wrap:wrap;gap:7px;margin:8px 0; }
+.minion-visual span { align-items:center;border:1px solid rgba(205,175,126,.25);display:grid;font-size:20px;min-height:40px;min-width:43px;padding:4px;text-align:center; }
+.minion-visual span.is-target { border-color:#f0ad54;box-shadow:0 0 14px rgba(240,173,84,.35); }
+.minion-visual b,.minion-visual em { color:#f4eadb;font-size:9px;font-style:normal;text-transform:uppercase; }
+.minion-question { display:grid;gap:3px;margin:7px 0; }
+.minion-question strong { font-size:12px;line-height:1.35; }
+.minion-question span { color:#d4c9bc;font-size:10px; }
+.curse-layer { height:100vh;inset:0;pointer-events:none;position:fixed;width:100vw;z-index:-1; }
+.curse-layer i { display:block;position:absolute; }
+.curse-layer--fog { background:repeating-radial-gradient(ellipse at 20% 80%,rgba(215,221,219,.16) 0 5%,transparent 12% 22%);animation:fog-drift 7s linear infinite;opacity:.85; }
+.curse-layer--zombie_hands i { background:#33452e;border-radius:45% 45% 15% 15%;bottom:-3%;height:28%;width:8%; }
+.curse-layer--zombie_hands i:nth-child(2){left:8%;transform:rotate(-18deg)} .curse-layer--zombie_hands i:nth-child(3){left:45%}.curse-layer--zombie_hands i:nth-child(4){right:7%;transform:rotate(18deg)}
+.curse-layer--spider_web { background:repeating-conic-gradient(from 0deg at 0 0,rgba(230,230,222,.18) 0 1deg,transparent 1deg 18deg);clip-path:polygon(0 0,32% 0,16% 22%,0 38%,0 100%,22% 100%,10% 85%,0 70%,0 38%,0 0,100% 0,100% 35%,88% 20%,70% 0); }
+.curse-layer--witch_distortion { background:linear-gradient(120deg,rgba(105,32,128,.18),transparent 45%,rgba(84,128,40,.16));animation:witch-wave 2.6s ease-in-out infinite; }
+.curse-layer--bat_attack i::before { content:"🦇🦇🦇🦇";font-size:34px;white-space:nowrap; }.curse-layer--bat_attack i:nth-child(2){top:12%;animation:bats 3s linear infinite}.curse-layer--bat_attack i:nth-child(3){top:55%;animation:bats 4s linear .5s infinite}.curse-layer--bat_attack i:nth-child(4){top:78%;animation:bats 3.4s linear 1s infinite}
+.curse-layer--darkness,.curse-layer--royal_curse { background:radial-gradient(circle at center,transparent 25%,rgba(0,0,0,.72) 100%); }.curse-layer--royal_curse::after{content:"◉     ◉";color:#ff7b25;filter:drop-shadow(0 0 10px #ff6a00);font-size:40px;left:50%;position:absolute;top:12%;transform:translateX(-50%);animation:pulse 1.4s ease-in-out infinite}
+@keyframes minion-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fog-drift{to{background-position:320px 0}}@keyframes witch-wave{50%{filter:hue-rotate(25deg);transform:scale(1.015)}}@keyframes bats{from{left:-35%}to{left:110%}}@keyframes pulse{50%{opacity:.45;transform:translateX(-50%) scale(.92)}}
+@media(max-width:900px){.pumpkin-widget{left:12px;width:calc(100vw - 24px)}.minion-card{max-width:none}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
