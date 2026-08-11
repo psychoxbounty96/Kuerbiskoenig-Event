@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "event": {
+    "id": "00000000-0000-4000-8000-000000000101",
+    "slug": "halloween-2026-test",
+    "name": "Kürbiskönig Community Event – Test",
+    "status": "testing",
+    "active": true,
+    "isTest": true
+  },
+  "boss": {
+    "id": "00000000-0000-4000-8000-000000000201",
+    "name": "Kürbiskönig",
+    "maxHp": 10000000,
+    "currentHp": 7438920,
+    "phase": 2,
+    "phaseName": "Der Fluch"
+  },
+  "settings": {
+    "eventPaused": false,
+    "damageEnabled": true,
+    "minionsEnabled": true,
+    "globalDamageMultiplier": 1,
+    "passiveDamageMultiplier": 1,
+    "activeDamageMultiplier": 1,
+    "passiveTickSeconds": 120
+  },
+  "streamers": [
+    { "id": "streamer-knoobbi", "slug": "knoobbi", "displayName": "Knoobbi", "communityName": "Knoobbi Community", "enabled": true },
+    { "id": "streamer-ghost", "slug": "ghostrider-tv", "displayName": "GhostriderTV", "communityName": "Ghostrider Community", "enabled": true }
+  ],
+  "minions": []
+}

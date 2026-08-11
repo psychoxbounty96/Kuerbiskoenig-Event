@@ -1,0 +1,45 @@
+project_id = "kuerbiskoenig-community-boss"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 54322
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed/202608110001_test_event.sql"]
+
+[realtime]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**"]
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+[functions.admin-event-action]
+verify_jwt = true
+
+[functions.process-passive-tick]
+verify_jwt = true
+
+[functions.twitch-sync]
+verify_jwt = false
+
+[functions.twitch-eventsub]
+verify_jwt = false
+
+[functions.minion-action]
+verify_jwt = false
+
+[functions.minion-tick]
+verify_jwt = false

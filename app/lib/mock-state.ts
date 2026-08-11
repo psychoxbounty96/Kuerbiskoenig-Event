@@ -1,0 +1,76 @@
+import { MILESTONES } from "./config";
+import type { EventState } from "./types";
+
+export const INITIAL_EVENT_STATE: EventState = {
+  version: 4,
+  updatedAt: "2026-08-10T20:00:00.000Z",
+  event: {
+    id: "00000000-0000-4000-8000-000000000101",
+    slug: "halloween-2026-test",
+    name: "Kürbiskönig Community Event – Test",
+    description: "Sicherer Testlauf für das streamerübergreifende Halloween-Event.",
+    status: "testing",
+    active: true,
+    isTest: true,
+  },
+  boss: {
+    id: "00000000-0000-4000-8000-000000000201",
+    name: "Kürbiskönig",
+    maxHp: 10_000_000,
+    currentHp: 7_438_920,
+    phase: 2,
+    phaseName: "Der Fluch",
+  },
+  settings: {
+    eventPaused: false,
+    damageEnabled: true,
+    minionsEnabled: true,
+    globalDamageMultiplier: 1,
+    passiveDamageMultiplier: 1,
+    activeDamageMultiplier: 1,
+    passiveTickSeconds: 120,
+  },
+  stats: {
+    globalDamage: 2_561_080,
+    minionsDefeated: 137,
+    minionsEscaped: 31,
+    communities: 5,
+    uniqueParticipants: 483,
+  },
+  streamers: [
+    { id: "streamer-knoobbi", slug: "knoobbi", displayName: "Knoobbi", communityName: "Knoobbi Community", twitchLogin: "knoobbi", twitchUserId: "mock-1001", twitchUrl: "https://twitch.tv/knoobbi", avatarUrl: null, enabled: true, damage: 438_291, minionsDefeated: 14, live: true, liveSince: "2026-08-10T17:46:00.000Z", currentStreamId: "mock-stream-1001", currentViewerCount: 23, lastTwitchSyncAt: "2026-08-10T20:00:00.000Z", lastSeenLiveAt: "2026-08-10T20:00:00.000Z", latestSession: { id: "mock-session-1001", streamId: "mock-stream-1001", startedAt: "2026-08-10T17:46:00.000Z", endedAt: null, status: "live", averageViewers: 18.7, peakViewers: 27, latestViewers: 23, sampleCount: 67, durationSeconds: 8_040 }, sortOrder: 1 },
+    { id: "streamer-ghost", slug: "ghostrider-tv", displayName: "GhostriderTV", communityName: "Ghostrider Community", twitchLogin: "ghostridertv", twitchUserId: "mock-1002", twitchUrl: "https://twitch.tv/ghostridertv", avatarUrl: null, enabled: true, damage: 391_182, minionsDefeated: 12, live: true, liveSince: "2026-08-10T18:32:00.000Z", currentStreamId: "mock-stream-1002", currentViewerCount: 17, lastTwitchSyncAt: "2026-08-10T20:00:00.000Z", lastSeenLiveAt: "2026-08-10T20:00:00.000Z", latestSession: { id: "mock-session-1002", streamId: "mock-stream-1002", startedAt: "2026-08-10T18:32:00.000Z", endedAt: null, status: "live", averageViewers: 15.2, peakViewers: 21, latestViewers: 17, sampleCount: 44, durationSeconds: 5_280 }, sortOrder: 2 },
+    { id: "streamer-hexenhand", slug: "hexenhand", displayName: "Hexenhand", communityName: "Hexenhand Horde", twitchLogin: "hexenhand", twitchUserId: "mock-1003", twitchUrl: "https://twitch.tv/hexenhand", avatarUrl: null, enabled: true, damage: 347_281, minionsDefeated: 11, live: false, liveSince: null, currentStreamId: null, currentViewerCount: 0, lastTwitchSyncAt: "2026-08-10T20:00:00.000Z", lastSeenLiveAt: "2026-08-09T22:14:00.000Z", latestSession: { id: "mock-session-1003", streamId: "mock-stream-1003", startedAt: "2026-08-09T19:05:00.000Z", endedAt: "2026-08-09T22:14:00.000Z", status: "ended", averageViewers: 11.4, peakViewers: 19, latestViewers: 13, sampleCount: 94, durationSeconds: 11_340 }, sortOrder: 3 },
+    { id: "streamer-darkknight", slug: "dark-knight", displayName: "DarkKnight", communityName: "DarkKnight Gefolge", twitchLogin: "darkknight", twitchUserId: "mock-1004", twitchUrl: "https://twitch.tv/darkknight", avatarUrl: null, enabled: true, damage: 289_405, minionsDefeated: 9, live: false, liveSince: null, currentStreamId: null, currentViewerCount: 0, lastTwitchSyncAt: "2026-08-10T20:00:00.000Z", lastSeenLiveAt: null, latestSession: null, sortOrder: 4 },
+    { id: "streamer-pumpkin", slug: "pumpkin-crew", displayName: "PumpkinCrew", communityName: "Pumpkin Crew", twitchLogin: "pumpkincrew", twitchUserId: null, twitchUrl: "https://twitch.tv/pumpkincrew", avatarUrl: null, enabled: true, damage: 251_993, minionsDefeated: 8, live: false, liveSince: null, currentStreamId: null, currentViewerCount: 0, lastTwitchSyncAt: null, lastSeenLiveAt: null, latestSession: null, sortOrder: 5 },
+  ],
+  minions: [],
+  milestones: MILESTONES.map((milestone, index) => ({
+    id: `milestone-${milestone.percent}`,
+    label: milestone.label,
+    percent: milestone.percent,
+    description: milestone.description,
+    reachedAt: milestone.percent >= 75 ? "2026-08-10T19:45:00.000Z" : null,
+    sortOrder: index + 1,
+  })),
+  twitch: {
+    health: {
+      status: "healthy",
+      reason: "Mock-Twitch-Sync erfolgreich; im Supabase-Modus werden echte Twitch-Daten verwendet.",
+      webhookConfigured: true,
+      lastSyncAt: "2026-08-10T20:00:00.000Z",
+      lastSuccessAt: "2026-08-10T20:00:00.000Z",
+      lastErrorAt: null,
+      lastError: null,
+      lastWebhookAt: "2026-08-10T19:58:42.000Z",
+      lastInvalidSignatureAt: null,
+      lastSubscriptionSyncAt: "2026-08-10T19:55:00.000Z",
+    },
+    subscriptions: { online: 4, offline: 4, raid: 8, pending: 0, revokedOrError: 0 },
+    recentRaids: [],
+    passiveDamagePreview: null,
+  },
+  log: [
+    { id: "initial-1", timestamp: "2026-08-10T20:00:00.000Z", type: "system", message: "MockDataProvider v0.4 geladen – Minion Engine bereit, passive Damage deaktiviert", actor: "local-mock-admin" },
+  ],
+};
