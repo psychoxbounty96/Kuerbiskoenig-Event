@@ -31,3 +31,10 @@ test("deployment kit separates GitHub, Supabase and StreamElements", async () =>
   assert.match(packager, /02_SUPABASE_BACKEND/);
   assert.match(packager, /03_STREAMELEMENTS_WIDGET/);
 });
+
+test("public page hides placeholder boss data until Supabase has synced", async () => {
+  const page = await read("app/components/PublicEventPage.tsx");
+  assert.match(page, /if \(!runtime\.lastSyncedAt\)/);
+  assert.match(page, /Event in Vorbereitung/);
+  assert.match(page, /startet bald/);
+});
