@@ -4,6 +4,8 @@ import test from "node:test";
 
 const migrationUrl = new URL("../supabase/migrations/202608110001_v0_2_core.sql", import.meta.url);
 const functionUrl = new URL("../supabase/functions/admin-event-action/index.ts", import.meta.url);
+const providerUrl = new URL("../app/lib/providers/supabase-data-provider.ts", import.meta.url);
+const adminPageUrl = new URL("../app/admin/page.tsx", import.meta.url);
 
 test("migration contains the complete v0.2 model and strict RLS", async () => {
   const sql = await readFile(migrationUrl, "utf8");
@@ -44,4 +46,15 @@ test("Edge Function verifies auth and event membership before dispatch", async (
   assert.match(source, /not_an_event_admin/);
   assert.match(source, /viewer_is_read_only/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_SUPABASE_SERVICE_ROLE/);
+});
+
+test("admin auth refresh keeps an authorized dashboard stable across tab changes", async () => {
+  const [provider, adminPage] = await Promise.all([
+    readFile(providerUrl, "utf8"),
+    readFile(adminPageUrl, "utf8"),
+  ]);
+  assert.match(provider, /keepAuthorizedState[\s\S]+authenticated:\s*keepAuthorizedState/);
+  assert.match(provider, /adminSessionValidationId[\s\S]+validationId !== this\.adminSessionValidationId/);
+  assert.match(adminPage, /session\.loading\s*&&\s*!session\.authenticated/);
+  assert.match(adminPage, /Admin-Sitzung wird geprüft/);
 });
