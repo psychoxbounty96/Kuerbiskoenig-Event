@@ -12,6 +12,50 @@ export function PublicEventPage() {
   const milestone = getNextMilestone(state.boss.currentHp, state.boss.maxHp);
   const ranking = state.streamers.filter((streamer) => streamer.enabled).sort((a, b) => b.damage - a.damage);
 
+  if (!runtime.lastSyncedAt) {
+    const isLoading = runtime.status === "loading";
+
+    return (
+      <main className="public-site">
+        <header className="site-header">
+          <a className="brand" href="#top" aria-label="Kürbiskönig Startseite">
+            <span className="brand-mark">K</span>
+            <span>
+              <strong>Kürbiskönig</strong>
+              <small>Community Boss Event</small>
+            </span>
+          </a>
+          <span className="event-status">
+            <i aria-hidden="true" /> {isLoading ? "Eventdaten werden geladen" : "Event in Vorbereitung"}
+          </span>
+        </header>
+
+        <section className="hero" id="top">
+          <div className="hero-copy">
+            <p className="overline">KÜRBISKÖNIG · COMMUNITY BOSS EVENT</p>
+            <h1>
+              Das Event
+              <span>startet bald.</span>
+            </h1>
+            <p className="hero-lead">
+              {isLoading
+                ? "Die öffentlichen Eventdaten werden gerade geladen."
+                : "Die Organisation bereitet den Kürbiskönig noch vor. Der echte Bossfortschritt erscheint automatisch, sobald das Event freigegeben wurde."}
+            </p>
+          </div>
+          <div className="hero-boss" aria-label="Kürbiskönig Eventvorschau">
+            <div className="phase-orbit" aria-hidden="true" />
+            <BossAvatar phase={1} />
+            <div className="boss-titleplate">
+              <span>VOR DEM START</span>
+              <strong>Bereit</strong>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="public-site">
       <header className="site-header">
