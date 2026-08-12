@@ -286,6 +286,7 @@ export class SupabaseDataProvider implements DataProvider {
     loading: true,
     error: null,
   };
+  private adminSessionValidationId = 0;
 
   private getConfiguration() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
@@ -366,22 +367,28 @@ export class SupabaseDataProvider implements DataProvider {
   }
 
   private async syncAdminSession(session: Session | null) {
+    const validationId = ++this.adminSessionValidationId;
     if (!session) {
       this.adminSession = { authenticated: false, userId: null, email: null, role: null, loading: false, error: null };
       this.notifyAdmin();
       return;
     }
 
+    const keepAuthorizedState = this.adminSession.authenticated &&
+      this.adminSession.userId === session.user.id &&
+      this.adminSession.role !== null;
+    const currentRole = keepAuthorizedState ? this.adminSession.role : null;
     this.adminSession = {
-      authenticated: false,
+      authenticated: keepAuthorizedState,
       userId: session.user.id,
       email: session.user.email ?? null,
-      role: null,
+      role: currentRole,
       loading: true,
       error: null,
     };
     this.notifyAdmin();
     const result = await this.executeAction<{ role: AdminRole }>("get_context", {}, true);
+    if (validationId !== this.adminSessionValidationId) return;
     this.adminSession = {
       ...this.adminSession,
       authenticated: result.ok,
