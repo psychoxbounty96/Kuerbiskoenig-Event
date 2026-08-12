@@ -45,3 +45,8 @@ test("publishes all minion placeholder images at stable GitHub Pages paths", asy
     assert.ok((await stat(image)).size > 50_000, `${folder} artwork should be published`);
   }
 });
+
+test("publishes the boss artwork at the stable StreamElements URL", async () => {
+  const image = new URL("../github-pages-dist/assets/boss/pumpkin-king.png", import.meta.url);
+  assert.ok((await stat(image)).size > 1_000_000, "boss artwork should be published");
+});
