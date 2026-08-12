@@ -20,5 +20,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch /tmp/live.bundle refs/heads/codex-live-widget-upload:refs/remotes/codex-upload/main
           git read-tree --reset -u refs/remotes/codex-upload/main
+          git restore --source=HEAD --staged --worktree -- .github/workflows
           git commit -m "Make StreamElements widget live-test ready"
           git push origin HEAD:main
