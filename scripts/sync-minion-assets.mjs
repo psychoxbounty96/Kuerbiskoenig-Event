@@ -24,5 +24,6 @@ const bossSource = resolve(projectRoot, "assets", "boss", "Kürbiskönig mit leu
 const bossTargetDirectory = resolve(projectRoot, "public", "assets", "boss");
 await mkdir(bossTargetDirectory, { recursive: true });
 await copyFile(bossSource, resolve(bossTargetDirectory, "pumpkin-king.png"));
+await copyFile(bossSource, resolve(bossTargetDirectory, "Kürbiskönig mit leuchtendem Zepter.png"));
 
 console.log(`Synced ${Object.keys(artwork).length} minion artworks and the boss artwork.`);
