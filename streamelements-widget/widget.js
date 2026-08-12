@@ -4,6 +4,7 @@ const WIDGET_CONFIG = Object.freeze({
   publishableKey: "__SUPABASE_PUBLISHABLE_KEY__",
   eventSlug: "__EVENT_SLUG__",
   assetBase: "__ASSET_BASE__",
+  bossAsset: "__BOSS_ASSET__",
   testControls: "__TEST_CONTROLS__" === "true",
 });
 
@@ -19,6 +20,7 @@ const MINION_ARTWORK_FOLDERS = Object.freeze({
   reaper: "reaper",
   kings_herald: "herald",
 });
+const MINION_ARTWORK_CACHE = new Map();
 const BUTTON_ACTIONS = Object.freeze({
   testReloadState: "reload_state",
   testRunTick: "tick",
@@ -73,6 +75,7 @@ let supabaseStatus = "disconnected";
 let localCurse = null;
 let localCurseTimer = null;
 let lastTestMessage = "";
+let renderedMinionSignature = "";
 
 function normalizeTwitchLogin(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -121,6 +124,16 @@ function applyVisualFields() {
   const widget = document.getElementById("pumpkin-widget");
   widget.style.setProperty("--widget-scale", String(scale / 100));
   widget.dataset.alignment = alignment;
+  const bossArtwork = document.getElementById("boss-artwork");
+  if (bossArtwork && !bossArtwork.getAttribute("src")) {
+    bossArtwork.src = WIDGET_CONFIG.bossAsset;
+    bossArtwork.addEventListener("load", () => widget.classList.add("has-boss-artwork"), { once: true });
+    bossArtwork.addEventListener("error", () => {
+      bossArtwork.hidden = true;
+      widget.classList.add("boss-artwork-unavailable");
+      safeDebug("Boss-Asset konnte nicht geladen werden.");
+    }, { once: true });
+  }
 }
 
 function diagnosticsVisible() {
@@ -217,6 +230,7 @@ function element(tag, className, text) {
 function minionArtwork(minion) {
   const folder = MINION_ARTWORK_FOLDERS[minion.key];
   if (!folder) return element("span", "minion-icon", minion.icon || "👻");
+  if (MINION_ARTWORK_CACHE.has(minion.key)) return MINION_ARTWORK_CACHE.get(minion.key);
   const frame = element("span", "minion-artwork");
   const image = element("img");
   image.src = `${WIDGET_CONFIG.assetBase}/${folder}/placeholder.jpg`;
@@ -228,6 +242,7 @@ function minionArtwork(minion) {
     frame.append(element("span", "minion-icon", minion.icon || "👻"));
   }, { once: true });
   frame.append(image);
+  MINION_ARTWORK_CACHE.set(minion.key, frame);
   return frame;
 }
 
@@ -251,6 +266,7 @@ function renderVisual(minion, observing) {
     return box;
   }
   if (minion.key === "bat_swarm" && observing) {
+    box.classList.add("minion-visual--bats");
     for (let index = 0; index < number(config.count); index += 1) box.append(element("span", "", "🦇"));
     return box;
   }
@@ -284,28 +300,51 @@ function renderMinion(minion) {
   if (!minion) {
     card.hidden = true;
     card.replaceChildren();
+    renderedMinionSignature = "";
     renderCurse(null);
     return;
   }
   renderCurse(minion);
   card.hidden = false;
   card.className = `minion-card minion-card--${minion.status}`;
+  const now = Date.now();
+  const observing = minion.status === "active" && now < milliseconds(minion.accepts_answers_at);
+  const signature = [
+    minion.id,
+    minion.status,
+    observing,
+    number(minion.required_participants),
+    number(minion.damage_awarded),
+    JSON.stringify(minion.runtime_config || {}),
+  ].join("|");
+  if (signature === renderedMinionSignature) {
+    const timer = document.getElementById("minion-timer");
+    const progress = document.getElementById("minion-progress");
+    if (progress) progress.textContent = `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`;
+    if (timer && minion.status === "active" && !observing) {
+      const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
+      timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+    }
+    return;
+  }
+  renderedMinionSignature = signature;
   const icon = minionArtwork(minion);
   const copy = element("div", "minion-copy");
   const timer = element("time", "");
+  timer.id = "minion-timer";
   if (minion.status === "intro") {
     copy.append(element("small", "", `MINION-ALARM · ${identity.streamerDisplayName}`), element("h2", "", minion.intro_title || minion.name));
     card.replaceChildren(icon, copy);
     return;
   }
   if (minion.status === "active") {
-    const now = Date.now();
-    const observing = now < milliseconds(minion.accepts_answers_at);
     copy.append(element("small", "", `${minion.game_mode} · ${minion.damage_class}`), element("h2", "", observing ? "Gut aufpassen …" : minion.gameplay_title || minion.name));
     const visual = renderVisual(minion, observing);
     if (visual) copy.append(visual);
     if (!observing) {
-      copy.append(element("p", "command", minion.instruction || "Schreibe !boss"), element("p", "progress", `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`));
+      const progress = element("p", "progress", `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`);
+      progress.id = "minion-progress";
+      copy.append(element("p", "command", minion.instruction || "Schreibe !boss"), progress);
       const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
       timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
       card.replaceChildren(icon, copy, timer);
