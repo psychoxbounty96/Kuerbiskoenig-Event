@@ -541,17 +541,18 @@ async function detectEditorMode() {
   } catch {
     editorMode = false;
   }
+  if (diagnosticsVisible()) document.getElementById("pumpkin-widget").hidden = false;
   updateDiagnostics();
 }
 
-window.addEventListener("onWidgetLoad", (event) => {
+window.addEventListener("onWidgetLoad", async (event) => {
   fieldData = event?.detail?.fieldData || {};
   applyVisualFields();
-  void detectEditorMode();
+  await detectEditorMode();
   channelUsername = normalizeTwitchLogin(event?.detail?.channel?.username);
   if (!channelUsername) {
     safeDebug("StreamElements channel.username fehlt.");
-    hideOverlay("error");
+    showIdentityMessage("Kanal nicht erkannt", "StreamElements liefert keinen channel.username.");
     return;
   }
   queueRefresh(true);
