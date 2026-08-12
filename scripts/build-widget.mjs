@@ -10,10 +10,12 @@ const publicConfig = JSON.parse(await readFile(publicConfigPath, "utf8"));
 const supabaseUrl = process.env.WIDGET_SUPABASE_URL || process.env.VITE_SUPABASE_URL || publicConfig.supabaseUrl;
 const publishableKey = process.env.WIDGET_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || publicConfig.publishableKey;
 const assetBase = process.env.WIDGET_ASSET_BASE || publicConfig.assetBase;
+const bossAsset = process.env.WIDGET_BOSS_ASSET || publicConfig.bossAsset;
 
 if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(supabaseUrl || "")) throw new Error("Invalid WIDGET_SUPABASE_URL.");
 if (!publishableKey || /REPLACE_ME|YOUR_PROJECT/.test(publishableKey)) throw new Error("WIDGET_SUPABASE_PUBLISHABLE_KEY is missing.");
 if (!/^https:\/\//.test(assetBase || "")) throw new Error("Invalid WIDGET_ASSET_BASE.");
+if (!/^https:\/\//.test(bossAsset || "")) throw new Error("Invalid WIDGET_BOSS_ASSET.");
 
 const [html, css, jsTemplate, visualFields] = await Promise.all([
   readFile(path.join(sourceDir, "widget.html"), "utf8"),
@@ -76,7 +78,7 @@ function assertBalanced(value, open, close, label) {
 function validateBuild(contents, variant) {
   const combined = `${contents.html}\n${contents.css}\n${contents.js}\n${contents.fields}`;
   const forbidden = [
-    [/__SUPABASE_|__EVENT_|__ASSET_|__TEST_/, "unresolved build token"],
+    [/__SUPABASE_|__EVENT_|__ASSET_|__BOSS_|__TEST_/, "unresolved build token"],
     [/\blocalhost\b|127\.0\.0\.1|file:\/\//i, "local runtime URL"],
     [/\bimport\s+(?:[^.(]|\()/, "unresolved import"],
     [/\brequire\s*\(/, "CommonJS require"],
@@ -101,6 +103,7 @@ for (const variant of variants) {
     .replaceAll("__SUPABASE_PUBLISHABLE_KEY__", publishableKey)
     .replaceAll("__EVENT_SLUG__", variant.eventSlug)
     .replaceAll("__ASSET_BASE__", assetBase)
+    .replaceAll("__BOSS_ASSET__", bossAsset)
     .replaceAll("__TEST_CONTROLS__", String(variant.testControls));
   const fields = `${JSON.stringify(variant.fields, null, 2)}\n`;
   const manifest = `${JSON.stringify({
