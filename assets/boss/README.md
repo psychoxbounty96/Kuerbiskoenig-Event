@@ -1,6 +1,8 @@
 # Boss-Assets
 
-Der Prototyp nutzt eine klar markierte CSS-Platzhaltergrafik. Ein späteres Boss-Asset kann hier versioniert werden. Der Rendervertrag sieht die Zustände `idle`, `hit`, `attack` und `phase-change` vor; v0.1 nutzt `idle` und `hit`.
+Das StreamElements-Widget verwendet aktuell `Kürbiskönig mit leuchtendem Zepter.png` als funktionales Boss-Asset über GitHub Pages. Kann das HTTPS-Asset nicht geladen werden, bleibt das Widget funktionsfähig und zeigt eine kleine Kürbis-Fallbackgrafik.
+
+Der Rendervertrag sieht weiterhin die Zustände `idle`, `hit`, `attack` und `phase-change` vor. Das aktuelle Einzelbild deckt `idle` ab; Animationen können später ohne Änderung der Eventlogik ergänzt werden.
 
 Empfohlene spätere Dateien:
 
