@@ -7,14 +7,20 @@
   </section>
 
   <section id="boss-card" class="boss-card" hidden>
-    <small>GLOBALER BOSS</small>
-    <h1 id="boss-name">Kürbiskönig</h1>
-    <div class="health-track"><i id="health-fill"></i></div>
-    <div class="boss-readout">
-      <strong id="boss-hp">Eventdaten werden geladen …</strong>
-      <strong id="boss-percent"></strong>
+    <div class="boss-artwork-frame" aria-hidden="true">
+      <img id="boss-artwork" class="boss-artwork" alt="" />
+      <span class="boss-artwork-fallback">🎃</span>
     </div>
-    <span id="event-state" hidden></span>
+    <div class="boss-info">
+      <small>GLOBALER BOSS</small>
+      <h1 id="boss-name">Kürbiskönig</h1>
+      <div class="health-track"><i id="health-fill"></i></div>
+      <div class="boss-readout">
+        <strong id="boss-hp">Eventdaten werden geladen …</strong>
+        <strong id="boss-percent"></strong>
+      </div>
+      <span id="event-state" hidden></span>
+    </div>
   </section>
 
   <section id="minion-card" class="minion-card" hidden></section>
