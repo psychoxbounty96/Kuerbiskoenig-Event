@@ -60,10 +60,10 @@ test("tick is service-only and cancellation guards cover pause, offline, disable
 test("StreamElements widget handles chat, server timestamps, realtime and exact streamer scoping", async () => {
   const source = await readFile(widgetUrl, "utf8");
   assert.match(source, /onEventReceived/);
-  assert.match(source, /listener==="message"/);
+  assert.match(source, /listener === "message"/);
   assert.match(source, /minion-action/);
-  assert.match(source, /milliseconds\(minion\.expires_at\)-now/i);
-  assert.match(source, /item\.streamer_id===identity\.streamerId/);
+  assert.match(source, /milliseconds\(minion\.expires_at\) - now/i);
+  assert.match(source, /item\.streamer_id === identity\.streamerId/);
   assert.match(source, /postgres_changes/);
   assert.match(source, /FALLBACK_REFRESH_MS/);
   assert.doesNotMatch(source, /damage\s*:/i);
@@ -77,7 +77,8 @@ test("all seven minions ship mapped placeholder artwork for Pages and StreamElem
     assert.ok((await stat(file)).size > 50_000, `${folder} artwork should be a real image`);
     assert.match(source, new RegExp(folder));
   }
-  assert.match(source, /MINION_ARTWORK_BASE/);
-  assert.match(source, /psychoxbounty96\.github\.io\/Kuerbiskoenig-Event\/assets\/minions/);
+  assert.match(source, /WIDGET_CONFIG\.assetBase/);
+  const config = await readFile(new URL("streamelements-widget/public-config.json", root), "utf8");
+  assert.match(config, /psychoxbounty96\.github\.io\/Kuerbiskoenig-Event\/assets\/minions/);
   assert.match(source, /function minionArtwork/);
 });

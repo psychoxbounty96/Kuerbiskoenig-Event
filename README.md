@@ -1,96 +1,93 @@
 # Kürbiskönig – Community Boss Event v0.4
 
-Das Projekt besteht aus drei klar getrennten Teilen:
+Das reale System läuft vollständig über vier vorhandene Dienste:
 
-1. **GitHub Pages** veröffentlicht Website, Adminoberfläche und Overlay-Preview als statische React-Anwendung.
-2. **Supabase** betreibt Datenbank, Auth, Realtime, Edge Functions, Twitch/EventSub und die serverautorititative Minion Engine.
-3. **StreamElements** ist das einzige produktive Stream-Overlay und erkennt den freigeschalteten Twitch-Kanal automatisch.
+- StreamElements ist das einzige Stream-Overlay und empfängt den echten Twitch-Chat.
+- Supabase betreibt Datenbank, Auth, Realtime, Edge Functions, Twitch/EventSub und die serverautoritative Boss-/Minion-Engine.
+- GitHub enthält Sourcecode, Migrationen und die Widget-Builds.
+- GitHub Pages veröffentlicht Eventseite und Adminoberfläche.
 
-Es gibt keine ChatGPT-Sites-, Bot-, OBS-Plugin-, Discord-/PXB-ComBot-, Economy- oder Reward-Abhängigkeit.
+Es gibt keine Abhängigkeit von ChatGPT Pages, einem Betreiber-PC, lokalem Server, Twitch-/Discord-Bot, PXB ComBot, OBS-Plugin, Streamer.bot, Economy oder Reward-System.
 
-## Startpunkt für die Einrichtung
+## Produktiver und Operator-Betrieb
 
-Die verständliche Rollen- und Ordnertrennung steht in [deployment/START_HIER.md](deployment/START_HIER.md). Mit
-
-```bash
-npm run package:deployment
-```
-
-entsteht neben dem Repository ein Ordner `KUERBISKOENIG_DEPLOYMENT_KIT` mit:
-
-- `01_GITHUB_REPOSITORY`
-- `02_SUPABASE_BACKEND`
-- `03_STREAMELEMENTS_WIDGET`
-
-## GitHub Pages
-
-Der Web-Client ist vollständig statisch. Die drei Einstiege werden nach `github-pages-dist/` gebaut:
-
-- `/` – öffentliche Eventseite
-- `/admin/` – Supabase-geschütztes Adminpanel
-- `/overlay/` – lokale/technische Overlay-Preview
-
-Der Workflow [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) veröffentlicht bei jedem Push nach `main`. Im GitHub-Repository werden unter **Settings → Secrets and variables → Actions → Variables** nur folgende browseröffentliche Werte angelegt:
+Der Betreiber testet den realen Pfad direkt in StreamElements gegen das Supabase-Produktivprojekt. Dafür existiert ein getrenntes Event `halloween-2026-test`; das Produktionsevent `halloween-2026` bleibt bis zur bewussten Aktivierung unberührt.
 
 ```text
-EVENT_SLUG
-SUPABASE_URL
-SUPABASE_PUBLISHABLE_KEY
+Testkanal im Testevent freischalten
+→ StreamElements Testwidget importieren
+→ automatische Kanalauflösung
+→ Supabase State + Realtime
+→ echte Widget Buttons / echter Twitch Chat !boss
 ```
 
-Keine geheimen Werte werden in GitHub Pages eingebaut. Die Adminseite selbst ist öffentlich abrufbar, aber Login, Rollenprüfung und Mutationen werden durch Supabase Auth, RLS und serverseitige Funktionen geschützt.
+Die vollständige Anleitung und Testmatrix stehen in [LIVE_STREAMELEMENTS_TESTING.md](docs/LIVE_STREAMELEMENTS_TESTING.md). Dafür werden kein `npm run dev`, kein `localhost`, kein Docker und kein lokaler Supabase-Emulator benötigt.
 
-## Lokale Entwicklung
+## Standalone StreamElements Build
 
 ```bash
-npm install
-npm run dev
+npm run build:widget
 ```
 
-Ohne lokale Umgebungswerte startet die Website absichtlich im Mockmodus. Für einen lokalen Supabase-Build `.env.production.local` nach [deployment/github-pages/README.md](deployment/github-pages/README.md) anlegen.
+Der Befehl erzeugt:
+
+- `dist/streamelements/production/` für `halloween-2026`, ohne Testbutton-Felder
+- `dist/streamelements/test/` für `halloween-2026-test`, mit Operator-Testbuttons
+
+Jedes Paket enthält `html.html`, `css.css`, `js.js`, `fields.json` und `manifest.json`. Die vier ersten Dateien werden in die gleichnamigen Bereiche eines StreamElements Custom Widgets kopiert. Es gibt keine unresolved Imports, lokale URLs oder Node-/Vite-Runtime im Ergebnis.
+
+Der Browser darf ausschließlich diese öffentlichen Werte kennen:
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+fester Eventslug des Builds
+öffentliche HTTPS-Assetbasis
+```
+
+Niemals im Widget oder in GitHub Pages: Service Role, `sb_secret_...`, Twitch Client Secret, EventSub Secret, `MINION_PARTICIPANT_PEPPER` oder Admin-Credentials.
+
+## Zero-Configuration Streamer-Setup
+
+Ein normaler Teilnehmer öffnet den StreamElements Share-Link, übernimmt das Overlay und fügt es als OBS-Browserquelle ein. `onWidgetLoad` liest `channel.username`, normalisiert ihn und löst ausschließlich im fest eingebauten Event einen bereits aktivierten `streamers.twitch_login` auf. Kein Streamer gibt ID, Login, Eventslug, Supabase-Wert, Token oder Command-Konfiguration ein.
+
+Siehe [STREAMER_SETUP.md](docs/STREAMER_SETUP.md).
 
 ## Supabase
 
-Das komplette Backend liegt unter `supabase/`:
+Das Backend liegt vollständig unter `supabase/`:
 
-- `migrations/` – Tabellen, Constraints, RLS, RPCs und Engine
-- `functions/` – Admin, Twitch, EventSub und Minion-Endpunkte
-- `scheduler/` – Twitch- und Minion-Zeitpläne
-- `seed/` – getrenntes Test- und vorbereitetes Produktionsevent
+- `migrations/`: Tabellen, Constraints, RLS, öffentliche Read-RPCs und Engine
+- `functions/`: Admin, Twitch/EventSub, Minion-Action, Minion-Tick und autorisierte Widget-Testaktionen
+- `seed/`: reproduzierbares Test- und vorbereitetes Produktionsevent
+- `scheduler/`: spätere Cron-Konfiguration
 
-Die genaue sichere Deploymentreihenfolge steht in [deployment/supabase/README.md](deployment/supabase/README.md).
+`SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` stellt Supabase gehosteten Edge Functions automatisch bereit. Deshalb können und sollen sie nicht als eigene Function Secrets angelegt werden. Eigene Secrets sind nur die in der Setup-Dokumentation genannten Twitch-/EventSub-Werte, der Minion Pepper und kontrollierte Scheduler-Schalter.
 
-`SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` werden in gehosteten Edge Functions automatisch bereitgestellt. Sie dürfen nicht als eigene Secrets angelegt werden. Eigene Secrets sind ausschließlich Twitch-Werte, EventSub Secret, Callback URL, Minion Pepper und der deaktivierte Passive-Tick-Schalter.
+## GitHub Pages
 
-## StreamElements
+Der statische Build veröffentlicht:
 
-Das produktive Widget liegt unter `streamelements-widget/`. Der Organisator hinterlegt einmalig die browseröffentliche Supabase URL, den Publishable Key und den festen Eventslug. Danach wird der Share-Link verteilt. Streamer konfigurieren keine ID, keinen Slug, keinen Bot und kein OAuth.
+- `/` – öffentliche Eventseite
+- `/admin/` – Supabase-geschütztes Adminpanel
+- `/overlay/` – ausschließlich technische Entwickler-Preview, kein Betreiber-Testweg
 
-Chat läuft nativ über `onEventReceived`. Der Client meldet ausschließlich die Aktion; Damage, Deduplizierung, Zeitfenster und Auflösung entscheidet Supabase.
+Die Adminseite und öffentliche Seite müssen für den Eventbetrieb nicht offen sein. Der Workflow [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) nutzt nur die browseröffentlichen Repository Variables `EVENT_SLUG`, `SUPABASE_URL` und `SUPABASE_PUBLISHABLE_KEY`.
 
-## Enthalten
+## Developer Tools
 
-- gemeinsamer globaler Boss mit atomaren Damage-Mutationen
-- Zero-Configuration StreamElements Identity
-- Twitch Live-State, Viewer Samples, Sessions, EventSub und Raids
-- parallele streamerbezogene Minions
-- `PARTICIPATION`, `VOTE`, `VISUAL_CHOICE` und `MEMORY`
-- Ghost, Zombiehorde, Spinnenkönigin, Hexe, Fledermäuse, Sensenmann und Raid-Herold
-- einheitlicher Command `!boss`
-- sieben maximal 15 Sekunden lange Curse-Placeholder
-- Realtime, Fallback-Refresh und serverzeitbasierte Recovery
-- Admin-Debugger und Chat-Simulator
-
-## Prüfung
+Lokale Mock-/Preview-Komponenten dürfen für Unit Tests oder Entwicklungsarbeit bestehen bleiben. Sie sind kein Nachweis für Live-Bereitschaft und kein Schritt in der Betreiber- oder Streameranleitung.
 
 ```bash
+npm install
 npm test
 ```
 
-Der Lauf prüft TypeScript, ESLint, Standalone-Widget, statischen Pages-Build, alle drei HTML-Einstiege, GitHub-Workflow, Supabase-/Twitch-/Minion-Verträge sowie Domainlogik.
+Der Testlauf prüft TypeScript, ESLint, beide Standalone-Widget-Builds, keine lokalen/privilegierten Werte im Widget, GitHub Pages, Supabase-/Twitch-/Minion-Verträge und Domainlogik.
 
 ## Dokumentation
 
+- [Realer StreamElements Testbetrieb](docs/LIVE_STREAMELEMENTS_TESTING.md)
 - [GitHub Pages Setup](docs/GITHUB_PAGES_SETUP.md)
 - [Supabase Setup für GitHub Pages](docs/SUPABASE_GITHUB_PAGES_SETUP.md)
 - [Twitch Setup](docs/TWITCH_SETUP.md)
@@ -98,4 +95,4 @@ Der Lauf prüft TypeScript, ESLint, Standalone-Widget, statischen Pages-Build, a
 - [Architektur](docs/ARCHITECTURE.md)
 - [Minion Engine](docs/MINION_ENGINE.md)
 - [Minion Game Design](docs/MINION_GAME_DESIGN.md)
-- [v0.4 Abschlussbericht](V0_4_REPORT.md)
+- [Live-Widget Abschlussbericht](LIVE_WIDGET_READINESS_REPORT.md)

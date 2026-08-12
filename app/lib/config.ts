@@ -218,7 +218,13 @@ export const REFRESH_INTERVAL_MS = 30_000;
 
 export const DATA_PROVIDER_MODE: ProviderMode =
   process.env.NEXT_PUBLIC_DATA_PROVIDER === "supabase" ? "supabase" : "mock";
-export const EVENT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "halloween-2026-test";
+const configuredEventSlug = process.env.NEXT_PUBLIC_EVENT_SLUG || "halloween-2026";
+const adminEventOverride = typeof window !== "undefined" && /\/admin\/?$/.test(window.location.pathname)
+  ? new URLSearchParams(window.location.search).get("event")?.trim().toLowerCase() ?? ""
+  : "";
+export const EVENT_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(adminEventOverride)
+  ? adminEventOverride
+  : configuredEventSlug;
 // Development / debug only. The production StreamElements widget resolves channel.username automatically.
 export const DEFAULT_OVERLAY_STREAMER = process.env.NEXT_PUBLIC_STREAMER_SLUG || "knoobbi";
 

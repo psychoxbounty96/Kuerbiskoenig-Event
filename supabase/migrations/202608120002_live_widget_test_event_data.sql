@@ -1,50 +1,5 @@
--- Deterministic, fictional data. Safe to re-run after `supabase db reset`.
-insert into public.events (id, slug, name, description, status)
-values
-  ('00000000-0000-4000-8000-000000000101', 'halloween-2026-test', 'Kürbiskönig Community Event – Test', 'Sicherer Testlauf für das streamerübergreifende Halloween-Event.', 'testing'),
-  ('00000000-0000-4000-8000-000000000102', 'halloween-2026', 'Kürbiskönig Community Event 2026', 'Vorbereitete Produktionsinstanz. Vor dem Start prüfen und explizit aktivieren.', 'draft')
-on conflict (id) do nothing;
-
-insert into public.bosses (id, event_id, name, max_hp, current_hp)
-values
-  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000101', 'Kürbiskönig', 10000000, 7438920),
-  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000102', 'Kürbiskönig', 10000000, 10000000)
-on conflict (id) do nothing;
-
-insert into public.boss_phases (event_id, boss_id, phase_number, name, min_percent, max_percent, color, sort_order)
-select b.event_id, b.id, p.phase_number, p.name, p.min_percent, p.max_percent, p.color, p.phase_number
-from public.bosses b
-cross join (values
-  (1, 'Das Erwachen', 75::numeric, 100::numeric, '#f28a2e'),
-  (2, 'Der Fluch', 50::numeric, 75::numeric, '#d96d35'),
-  (3, 'Die Dunkelheit', 25::numeric, 50::numeric, '#a662cb'),
-  (4, 'Der Untergang', 0::numeric, 25::numeric, '#d85d44')
-) p(phase_number, name, min_percent, max_percent, color)
-on conflict (boss_id, phase_number) do nothing;
-
-insert into public.milestones (event_id, boss_id, name, description, hp_percent, sort_order, reached_at)
-select b.event_id, b.id, m.name, m.description, m.hp_percent, m.sort_order,
-  case when e.status = 'testing' and m.hp_percent = 75 then now() else null end
-from public.bosses b join public.events e on e.id = b.event_id
-cross join (values
-  ('Erstes Siegel gebrochen', 'Der Kürbiskönig verliert seine erste Schutzschicht.', 75::numeric, 1),
-  ('Der Fluch wankt', 'Die vereinten Communities drängen den Fluch zurück.', 50::numeric, 2),
-  ('Schattenkrone gespalten', 'Nur noch ein Viertel der Boss-HP bleibt.', 25::numeric, 3),
-  ('Finale Warnung', 'Der Kürbiskönig steht kurz vor dem Fall.', 10::numeric, 4)
-) m(name, description, hp_percent, sort_order)
-on conflict (boss_id, hp_percent) do nothing;
-
-insert into public.event_settings (event_id, event_paused, damage_enabled, minions_enabled,
-  global_damage_multiplier, passive_damage_multiplier, active_damage_multiplier, passive_tick_seconds)
-select id, status = 'draft', true, true, 1, 1, 1, 120 from public.events
-on conflict (event_id) do nothing;
-
-insert into public.streamers (id, event_id, slug, display_name, community_name, twitch_login, twitch_url, sort_order, is_test_account)
-values
-  ('00000000-0000-4000-8000-000000000301', '00000000-0000-4000-8000-000000000101', 'nachtfalter', 'Nachtfalter', 'Nachtfalter Nest', 'nachtfalter_test', 'https://twitch.tv/nachtfalter_test', 1, true),
-  ('00000000-0000-4000-8000-000000000302', '00000000-0000-4000-8000-000000000101', 'geisterstunde', 'Geisterstunde', 'Geisterstunde Crew', 'geisterstunde_test', 'https://twitch.tv/geisterstunde_test', 2, true),
-  ('00000000-0000-4000-8000-000000000303', '00000000-0000-4000-8000-000000000101', 'mooslicht', 'Mooslicht', 'Mooslicht Zirkel', 'mooslicht_test', 'https://twitch.tv/mooslicht_test', 3, true)
-on conflict (id) do nothing;
+-- Reproduce the complete v0.4 engine configuration for the dedicated live test event.
+-- The production event is intentionally not modified by this readiness data patch.
 
 insert into public.curse_definitions (event_id, key, name, duration_ms, intensity, config)
 select e.id, v.key, v.name, v.duration_ms, 0.7, v.config
@@ -57,8 +12,10 @@ from public.events e cross join (values
   ('darkness', 'Dunkelheit', 10000, '{"blackout_max_ms":1500}'::jsonb),
   ('royal_curse', 'Königlicher Fluch', 12000, '{"center_clear":true}'::jsonb)
 ) v(key, name, duration_ms, config)
+where e.slug='halloween-2026-test'
 on conflict (event_id, key) do update set
-  name=excluded.name, duration_ms=excluded.duration_ms, intensity=excluded.intensity, config=excluded.config;
+  name=excluded.name, duration_ms=excluded.duration_ms, intensity=excluded.intensity,
+  config=excluded.config, enabled=true, updated_at=now();
 
 insert into public.minion_damage_classes (
   event_id, damage_class, base_damage, community_exponent, minimum_factor, maximum_factor, provisional
@@ -68,15 +25,18 @@ from public.events e cross join (values
   ('STANDARD', 5000::bigint), ('HIGH', 8000::bigint),
   ('ELITE', 12000::bigint), ('SPECIAL', 15000::bigint)
 ) v(damage_class, base_damage)
+where e.slug='halloween-2026-test'
 on conflict (event_id, damage_class) do update set
-  base_damage=excluded.base_damage, provisional=true;
+  base_damage=excluded.base_damage, community_exponent=excluded.community_exponent,
+  minimum_factor=excluded.minimum_factor, maximum_factor=excluded.maximum_factor, provisional=true;
 
 insert into public.minion_questions (
   event_id, question, answer_a, answer_b, answer_c, correct_answer, difficulty, enabled
 )
 select e.id, 'Welches Tier wird klassisch mit Vampiren verbunden?', 'Wolf', 'Fledermaus', 'Katze', 'b', 1, true
 from public.events e
-where not exists (select 1 from public.minion_questions q where q.event_id=e.id);
+where e.slug='halloween-2026-test'
+  and not exists(select 1 from public.minion_questions q where q.event_id=e.id);
 
 insert into public.minion_definitions (
   event_id, key, name, icon, command, base_damage, duration_seconds, type, game_mode,
@@ -97,15 +57,14 @@ from public.events e cross join (values
   ('reaper','Der Sensenmann','💀',25,'MEMORY','Der Sensenmann prüft euer Gedächtnis!','Welche Folge war richtig?','Antworte mit !boss A, B oder C',3000,4,'HIGH','darkness',3,0.7,2,26,0.40,'{"options":["a","b","c"],"tie_strategy":"failure"}'::jsonb),
   ('kings_herald','Herold des Königs','👑',45,'PARTICIPATION','Verstärkung ist eingetroffen!','Schlagt den Herold zurück!','Schreibe !boss',4000,0,'ELITE','royal_curse',1,0.0,4,38,0.55,'{"raid_special":true}'::jsonb)
 ) v(key,name,icon,duration_seconds,game_mode,intro_title,gameplay_title,instruction,intro_duration_ms,observe_seconds,damage_class,curse_key,phase_min,weight,min_required,max_required,participation_factor,config)
+where e.slug='halloween-2026-test'
 on conflict (event_id, key) do update set
-  name=excluded.name, icon=excluded.icon, game_mode=excluded.game_mode,
+  name=excluded.name, icon=excluded.icon, command=excluded.command,
+  duration_seconds=excluded.duration_seconds, type=excluded.type, game_mode=excluded.game_mode,
   intro_title=excluded.intro_title, gameplay_title=excluded.gameplay_title,
   instruction=excluded.instruction, intro_duration_ms=excluded.intro_duration_ms,
   observe_duration_seconds=excluded.observe_duration_seconds, damage_class=excluded.damage_class,
   failure_curse_key=excluded.failure_curse_key, phase_min=excluded.phase_min,
   weight=excluded.weight, min_participants=excluded.min_participants,
-  max_participants=excluded.max_participants, participation_factor=excluded.participation_factor,
-  config=excluded.config, enabled=true;
-
--- Supabase-Auth-Nutzer werden absichtlich nicht geseedet. Nach dem Anlegen eines
--- Testkontos dessen auth.users.id über das Beispiel in docs/SUPABASE_SETUP.md zuweisen.
+  max_participants=excluded.max_participants, curve_exponent=excluded.curve_exponent,
+  participation_factor=excluded.participation_factor, config=excluded.config, enabled=true;

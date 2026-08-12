@@ -1,10 +1,10 @@
 // Values between __...__ are replaced by `npm run build:widget`.
 const WIDGET_CONFIG = Object.freeze({
-  supabaseUrl: "__SUPABASE_URL__",
-  publishableKey: "__SUPABASE_PUBLISHABLE_KEY__",
-  eventSlug: "__EVENT_SLUG__",
-  assetBase: "__ASSET_BASE__",
-  testControls: "__TEST_CONTROLS__" === "true",
+  supabaseUrl: "https://xydyeibmbxoaeyxocyoa.supabase.co",
+  publishableKey: "sb_publishable_QRpIf8Mog4awVvcQsFQI0Q_RuOMqNhj",
+  eventSlug: "halloween-2026-test",
+  assetBase: "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions",
+  testControls: "true" === "true",
 });
 
 const FALLBACK_REFRESH_MS = 5_000;

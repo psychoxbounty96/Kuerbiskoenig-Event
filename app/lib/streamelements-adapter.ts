@@ -46,6 +46,8 @@ function emptyResolution(
     streamerId: null,
     streamerSlug: null,
     streamerDisplayName: null,
+    isTestAccount: false,
+    testActionsAuthorized: false,
   };
 }
 
@@ -55,7 +57,7 @@ export function resolveParticipantIdentity(options: {
   currentEventId: string;
   currentEventSlug: string;
   currentEventStatus: EventStatus;
-  streamers: Pick<StreamerState, "id" | "slug" | "displayName" | "twitchLogin" | "enabled">[];
+  streamers: Pick<StreamerState, "id" | "slug" | "displayName" | "twitchLogin" | "enabled" | "isTestAccount">[];
 }): OverlayIdentityResolution {
   const channelUsername = normalizeTwitchLogin(options.channelUsername);
   const eventSlug = normalizeEventSlug(options.eventSlug);
@@ -86,6 +88,8 @@ export function resolveParticipantIdentity(options: {
     streamerId: streamer.id,
     streamerSlug: streamer.slug,
     streamerDisplayName: streamer.displayName,
+    isTestAccount: Boolean(streamer.isTestAccount),
+    testActionsAuthorized: Boolean(streamer.isTestAccount) && options.currentEventStatus === "testing",
   };
 }
 

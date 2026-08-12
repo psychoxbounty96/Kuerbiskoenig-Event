@@ -2,6 +2,8 @@
 
 ## Abgeschlossen
 
+- Live-Widget Readiness: eigenständiger StreamElements Build, echtes Testevent/Testkonto, serverseitig autorisierte Widget Buttons, Live-Realtime/Fallback und echter `!boss`-Pfad ohne lokalen Betreiber-PC
+
 - v0.1: visueller Vertical Slice
 - v0.2: Supabase Event-State, Auth/RLS, atomare Damage-RPC, Realtime und erste streamergebundene Minions
 - v0.3: Twitch Awareness, Batch-Sync, Viewer-Samples, Sessions, sicherer EventSub-Webhook, Raids und Health

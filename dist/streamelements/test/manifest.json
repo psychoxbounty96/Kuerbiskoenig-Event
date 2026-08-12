@@ -1,0 +1,13 @@
+{
+  "format": "streamelements-custom-widget",
+  "version": 1,
+  "variant": "test",
+  "eventSlug": "halloween-2026-test",
+  "testControls": true,
+  "files": {
+    "html": "html.html",
+    "css": "css.css",
+    "js": "js.js",
+    "fields": "fields.json"
+  }
+}

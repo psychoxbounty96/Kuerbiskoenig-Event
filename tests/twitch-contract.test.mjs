@@ -85,14 +85,17 @@ test("production StreamElements widget derives identity from channel.username wi
     readFile(widgetFieldsUrl, "utf8"),
     readFile(adminFunctionUrl, "utf8"),
   ]);
-  assert.deepEqual(JSON.parse(fields), {});
-  assert.match(source, /obj\?\.detail\?\.channel\?\.username/);
-  assert.match(source, /const WIDGET_EVENT_SLUG = "halloween-2026"/);
+  const parsedFields = JSON.parse(fields);
+  assert.equal(parsedFields.streamerSlug, undefined);
+  assert.equal(parsedFields.eventSlug, undefined);
+  assert.equal(parsedFields.twitchLogin, undefined);
+  assert.match(source, /event\?\.detail\?\.channel\?\.username/);
+  assert.match(source, /eventSlug: "__EVENT_SLUG__"/);
   assert.match(source, /resolve_stream_elements_identity/);
-  assert.match(source, /item\.streamer_id\s*===\s*identity\.streamerId/);
+  assert.match(source, /item\.streamer_id === identity\.streamerId/);
   assert.match(source, /FALLBACK_REFRESH_MS/);
-  assert.match(source, /DEBUG_IDENTITY = false/);
-  assert.doesNotMatch(source, /fieldData/);
+  assert.match(source, /get_stream_elements_widget_state/);
+  assert.match(source, /fieldData/);
   assert.doesNotMatch(source, /insert.*streamer/i);
   assert.match(adminSource, /duplicate_twitch_login/);
   assert.match(adminSource, /normalizedTwitchLogin/);

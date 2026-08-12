@@ -43,3 +43,6 @@ verify_jwt = false
 
 [functions.minion-tick]
 verify_jwt = false
+
+[functions.widget-test-action]
+verify_jwt = false

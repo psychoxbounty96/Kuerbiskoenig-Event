@@ -220,6 +220,7 @@ Deno.serve(async (request) => {
         twitch_url: text(streamer.twitchUrl),
         avatar_url: text(streamer.avatarUrl) || null,
         enabled: boolean(streamer.enabled, true),
+        is_test_account: boolean(streamer.isTestAccount),
         sort_order: Math.floor(number(streamer.sortOrder ?? 0)),
         updated_at: new Date().toISOString(),
         ...(streamerId ? { twitch_user_id: twitchUserId ?? null } : {}),

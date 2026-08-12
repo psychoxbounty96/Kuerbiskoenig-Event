@@ -43,6 +43,7 @@ function StreamerEditor({
       twitchUrl: String(form.get("twitchUrl")),
       avatarUrl: String(form.get("avatarUrl")) || null,
       enabled: streamer.enabled,
+      isTestAccount: form.get("isTestAccount") === "on",
     }, streamer.id).then((result) => {
       if (result.ok) setEditing(false);
       return result;
@@ -57,6 +58,7 @@ function StreamerEditor({
         <input name="twitchLogin" defaultValue={streamer.twitchLogin} aria-label="Twitch Login" required />
         <input name="twitchUrl" defaultValue={streamer.twitchUrl} aria-label="Twitch URL" />
         <input name="avatarUrl" defaultValue={streamer.avatarUrl ?? ""} aria-label="Avatar URL" />
+        <label className="check-row"><input name="isTestAccount" type="checkbox" defaultChecked={Boolean(streamer.isTestAccount)} /> Testkonto (nicht öffentlich auswerten)</label>
         <div className="inline-actions">
           <button type="submit" disabled={disabled}>Speichern</button>
           <button type="button" onClick={() => setEditing(false)}>Abbrechen</button>
@@ -69,7 +71,7 @@ function StreamerEditor({
     <article className={`streamer-row${streamer.enabled ? "" : " is-disabled"}`}>
       <div>
         <strong>{streamer.displayName}</strong>
-        <small>{streamer.communityName} · @{streamer.twitchLogin} · automatische Widget-Freigabe</small>
+        <small>{streamer.communityName} · @{streamer.twitchLogin} · automatische Widget-Freigabe{streamer.isTestAccount ? " · TESTKONTO" : ""}</small>
       </div>
       <div className="inline-actions">
         <button type="button" disabled={disabled} onClick={() => setEditing(true)}>Bearbeiten</button>
@@ -148,6 +150,7 @@ export default function AdminPage() {
       twitchUrl: String(form.get("twitchUrl")),
       avatarUrl: null,
       enabled: true,
+      isTestAccount: form.get("isTestAccount") === "on",
     };
     void run(stateProvider.adminUpsertStreamer(input).then((result) => {
       if (result.ok) element.reset();
@@ -437,6 +440,7 @@ export default function AdminPage() {
             <input name="communityName" placeholder="Community (optional)" />
             <input name="twitchLogin" placeholder="Twitch Login" required />
             <input name="twitchUrl" type="url" placeholder="https://twitch.tv/..." />
+            <label className="check-row"><input name="isTestAccount" type="checkbox" /> Als Testkonto markieren</label>
             <button type="submit" disabled={!canMutate}>Hinzufügen</button>
           </form>
         </section>

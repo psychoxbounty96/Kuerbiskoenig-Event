@@ -68,6 +68,8 @@ function mapIdentityResolution(value: unknown, channelUsername: string, eventSlu
     streamerId: asString(payload.streamer_id) || null,
     streamerSlug: asString(payload.streamer_slug) || null,
     streamerDisplayName: asString(payload.streamer_display_name) || null,
+    isTestAccount: asBoolean(payload.is_test_account),
+    testActionsAuthorized: asBoolean(payload.test_actions_authorized),
   };
 }
 
@@ -102,6 +104,7 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
     twitchUrl: asString(streamer.twitch_url),
     avatarUrl: asString(streamer.avatar_url) || null,
     enabled: asBoolean(streamer.enabled, true),
+    isTestAccount: asBoolean(streamer.is_test_account),
     damage: asNumber(streamer.damage),
     minionsDefeated: asNumber(streamer.minions_defeated),
     live: asBoolean(streamer.is_live),

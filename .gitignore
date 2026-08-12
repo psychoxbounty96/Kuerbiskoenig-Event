@@ -38,7 +38,9 @@ yarn-error.log*
 # vercel
 .vercel
 
-/dist/
+/dist/*
+!/dist/streamelements/
+!/dist/streamelements/**
 /github-pages-dist/
 /public/assets/minions/
 /.wrangler/

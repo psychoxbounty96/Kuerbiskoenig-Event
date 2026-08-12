@@ -1,0 +1,223 @@
+{
+  "widgetName": {
+    "type": "hidden",
+    "value": "Kürbiskönig Community Boss"
+  },
+  "overlayScale": {
+    "type": "slider",
+    "label": "Overlay Scale",
+    "value": 100,
+    "min": 50,
+    "max": 150,
+    "step": 5,
+    "group": "🎃 OVERLAY"
+  },
+  "alignment": {
+    "type": "dropdown",
+    "label": "Alignment",
+    "value": "left",
+    "options": {
+      "left": "Left",
+      "right": "Right"
+    },
+    "group": "🎃 OVERLAY"
+  },
+  "showHpNumbers": {
+    "type": "checkbox",
+    "label": "Show HP numbers",
+    "value": true,
+    "group": "🎃 OVERLAY"
+  },
+  "showPercentage": {
+    "type": "checkbox",
+    "label": "Show percentage",
+    "value": true,
+    "group": "🎃 OVERLAY"
+  },
+  "showDebugPanel": {
+    "type": "checkbox",
+    "label": "Editor diagnostics",
+    "value": true,
+    "group": "🛠 DEBUG"
+  },
+  "testReloadState": {
+    "type": "button",
+    "label": "Reload Boss State",
+    "value": "Reload Boss State",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testRunTick": {
+    "type": "button",
+    "label": "Run Minion Tick",
+    "value": "Run Minion Tick",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testViewerSample": {
+    "type": "button",
+    "label": "Create Test Viewer Sample",
+    "value": "Create Test Viewer Sample",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testBossHit": {
+    "type": "button",
+    "label": "Test Boss Hit (-1,000)",
+    "value": "Test Boss Hit (-1,000)",
+    "group": "👑 BOSS TESTS"
+  },
+  "testBossBigHit": {
+    "type": "button",
+    "label": "Test Boss Big Hit (-25,000)",
+    "value": "Test Boss Big Hit (-25,000)",
+    "group": "👑 BOSS TESTS"
+  },
+  "testResetBoss": {
+    "type": "button",
+    "label": "Reset Test Boss",
+    "value": "Reset Test Boss",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase1": {
+    "type": "button",
+    "label": "Phase I",
+    "value": "Phase I",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase2": {
+    "type": "button",
+    "label": "Phase II",
+    "value": "Phase II",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase3": {
+    "type": "button",
+    "label": "Phase III",
+    "value": "Phase III",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase4": {
+    "type": "button",
+    "label": "Phase IV",
+    "value": "Phase IV",
+    "group": "👑 BOSS TESTS"
+  },
+  "testSpawnGhost": {
+    "type": "button",
+    "label": "Spawn Ghost",
+    "value": "Spawn Ghost",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnZombie": {
+    "type": "button",
+    "label": "Spawn Zombie Horde",
+    "value": "Spawn Zombie Horde",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnSpider": {
+    "type": "button",
+    "label": "Spawn Spider Queen",
+    "value": "Spawn Spider Queen",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnWitch": {
+    "type": "button",
+    "label": "Spawn Witch",
+    "value": "Spawn Witch",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnBats": {
+    "type": "button",
+    "label": "Spawn Bat Swarm",
+    "value": "Spawn Bat Swarm",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnReaper": {
+    "type": "button",
+    "label": "Spawn Reaper",
+    "value": "Spawn Reaper",
+    "group": "👻 MINION TESTS"
+  },
+  "testSpawnHerald": {
+    "type": "button",
+    "label": "Spawn Raid Herald",
+    "value": "Spawn Raid Herald",
+    "group": "👻 MINION TESTS"
+  },
+  "testForceSuccess": {
+    "type": "button",
+    "label": "Force Current Minion Success",
+    "value": "Force Current Minion Success",
+    "group": "👻 MINION TESTS"
+  },
+  "testForceFailure": {
+    "type": "button",
+    "label": "Force Current Minion Failure",
+    "value": "Force Current Minion Failure",
+    "group": "👻 MINION TESTS"
+  },
+  "testCancelMinion": {
+    "type": "button",
+    "label": "Cancel Current Minion",
+    "value": "Cancel Current Minion",
+    "group": "👻 MINION TESTS"
+  },
+  "testExpireMinion": {
+    "type": "button",
+    "label": "Expire Current Minion",
+    "value": "Expire Current Minion",
+    "group": "👻 MINION TESTS"
+  },
+  "testRaid": {
+    "type": "button",
+    "label": "Simulate Eligible Raid",
+    "value": "Simulate Eligible Raid",
+    "group": "👻 MINION TESTS"
+  },
+  "testHeraldNow": {
+    "type": "button",
+    "label": "Spawn Herald Now",
+    "value": "Spawn Herald Now",
+    "group": "👻 MINION TESTS"
+  },
+  "testFog": {
+    "type": "button",
+    "label": "Test Fog (visual only)",
+    "value": "Test Fog (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testZombieHands": {
+    "type": "button",
+    "label": "Test Zombie Hands (visual only)",
+    "value": "Test Zombie Hands (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testSpiderWeb": {
+    "type": "button",
+    "label": "Test Spider Web (visual only)",
+    "value": "Test Spider Web (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testWitchDistortion": {
+    "type": "button",
+    "label": "Test Witch Distortion (visual only)",
+    "value": "Test Witch Distortion (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testBatAttack": {
+    "type": "button",
+    "label": "Test Bat Attack (visual only)",
+    "value": "Test Bat Attack (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testDarkness": {
+    "type": "button",
+    "label": "Test Darkness (visual only)",
+    "value": "Test Darkness (visual only)",
+    "group": "🌫 CURSE TESTS"
+  },
+  "testRoyalCurse": {
+    "type": "button",
+    "label": "Test Royal Curse (visual only)",
+    "value": "Test Royal Curse (visual only)",
+    "group": "🌫 CURSE TESTS"
+  }
+}

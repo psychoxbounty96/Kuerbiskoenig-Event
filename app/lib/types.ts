@@ -34,6 +34,8 @@ export interface OverlayIdentityResolution {
   streamerId: string | null;
   streamerSlug: string | null;
   streamerDisplayName: string | null;
+  isTestAccount: boolean;
+  testActionsAuthorized: boolean;
 }
 
 export interface StreamSessionState {
@@ -59,6 +61,7 @@ export interface StreamerState {
   twitchUrl: string;
   avatarUrl: string | null;
   enabled: boolean;
+  isTestAccount?: boolean;
   damage: number;
   minionsDefeated: number;
   live: boolean;
@@ -79,6 +82,7 @@ export interface StreamerInput {
   twitchUrl: string;
   avatarUrl?: string | null;
   enabled: boolean;
+  isTestAccount?: boolean;
 }
 
 export interface MinionInstance {

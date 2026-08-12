@@ -1,5 +1,36 @@
 # Architektur v0.4
 
+## Live-Widget Runtime
+
+Der produktive StreamElements-Build ist ein eigenständiges Vier-Dateien-Paket. Er enthält keinen Modulimport, keine Node-/Vite-Laufzeit, keine lokale URL und kein Secret. Browseröffentliche Projekt-URL, Publishable Key, HTTPS-Assetbasis und der feste Eventslug werden mit `npm run build:widget` eingebettet.
+
+```text
+onWidgetLoad / onEventReceived
+          │
+          ▼
+StreamElements Custom Widget
+     │ REST/RPC      │ Realtime
+     └──────────┬────┘
+                ▼
+           Supabase
+      ┌─────────┴─────────┐
+      ▼                   ▼
+public read RPCs    server-authoritative
+                    Edge Functions / RPCs
+```
+
+`get_stream_elements_widget_state(eventSlug, twitchLogin)` liefert nur den automatisch erkannten Streamer und dessen Minions, jedoch weiterhin den globalen Boss. Realtime ist ein Aktualisierungssignal; nach jeder Meldung wird der autoritative Snapshot neu gelesen. Bei Ausfall bleibt der letzte sichere State sichtbar, ein periodischer Re-Fetch läuft weiter und Realtime wird neu verbunden.
+
+Lokale Mock-Komponenten dürfen für Unit Tests und Entwicklung bestehen bleiben. Sie sind weder Betreiber-Testweg noch Laufzeitabhängigkeit. Solange produktive Cronjobs bewusst deaktiviert sind, darf ausschließlich ein autorisiertes Testwidget im Event `testing` einen serverseitig validierten Tick-Heartbeat auslösen. Sämtliche Transitionen verwenden weiterhin die persistierten Serverzeitpunkte; das Produktionsevent besitzt diesen Testpfad nicht.
+
+## Operator-Testautorisierung
+
+Testkonten werden durch `streamers.is_test_account` explizit markiert. `widget-test-action` akzeptiert nur einen normalisierten Login, der im angeforderten Event aktiviert und als Testkonto markiert ist, und nur wenn dieses Event den Status `testing` besitzt. Das Event wird aus dem Testbuild fest vorgegeben; Streamer-ID, HP, Damage, Resolution und Success werden nicht vom Client akzeptiert.
+
+Diese Grenze ist weiterhin eine bewusst enge Soft-Trust-Lösung, weil StreamElements ohne Bot/OAuth keinen kryptografischen Kanalbeweis liefert. Ihre Reichweite ist auf das getrennte Testevent begrenzt. Das Produktionsevent kann damit nicht mutiert werden. Normale Share-Links enthalten keine Testbutton-Felder und kompilieren Testcontrols aus.
+
+Testkonten werden aus der öffentlichen Teilnehmerliste, öffentlichen Minion-Statistiken und der Calibration-View ausgeschlossen. Manuelle Viewer Samples tragen `source = manual_test`; die Calibration-View enthält ausschließlich Twitch-API-Samples normaler Konten.
+
 ## Systemgrenze
 
 Das Projekt besteht ausschließlich aus StreamElements, Supabase, Twitch API/EventSub sowie GitHub/GitHub Pages für Sourcecode und statische Website. ChatGPT Sites, ein separater Twitch-/Discord-Bot, PXB ComBot, lokaler Client oder OBS-Plugin sind keine Abhängigkeit.

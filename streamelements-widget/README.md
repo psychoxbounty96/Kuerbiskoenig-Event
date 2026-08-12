@@ -1,13 +1,35 @@
-# StreamElements Custom Widget – Zero Configuration + Minion Engine v0.4
+# StreamElements Custom Widget – Live Build
 
-`widget.html`, `widget.css`, `widget.js` und `fields.json` werden in die vier Bereiche eines StreamElements Custom Widgets kopiert. Der Eventbetreiber hinterlegt vor dem Share-Link einmalig die browser-sichere Supabase-URL, den Publishable Key und den fest zu diesem Widget-Build gehörenden `WIDGET_EVENT_SLUG` in `widget.js`.
+Der Betreiber nutzt nicht die Quelldateien direkt. Der eindeutige Buildpfad ist:
 
-Teilnehmende Streamer konfigurieren keine Identitätswerte. Beim `onWidgetLoad` liest das Widget ausschließlich `obj.detail.channel.username`, normalisiert den Login mit `trim().toLowerCase()` und löst ihn innerhalb des fest eingebauten Events gegen einen bereits administrativ freigeschalteten Teilnehmer auf. `fields.json` enthält daher weder `streamerSlug` noch `eventSlug`, Twitch Login, IDs, Backendwerte oder Secrets.
+```bash
+npm run build:widget
+```
 
-Unbekannte und deaktivierte Kanäle werden niemals angelegt und erhalten keine Minions. Das Live-Overlay bleibt für sie standardmäßig vollständig unsichtbar. Draft/Testing zeigt einem erfolgreich erkannten Teilnehmer nur einen dezenten Pre-Launch-Status; bei `active` erscheint der Boss, bei Pause bleibt die Identität bestehen und das Widget setzt sich automatisch fort.
+Danach liegen zwei eigenständige Pakete bereit:
 
-`DEBUG_IDENTITY`, `DEV_STREAMER_OVERRIDE` und `DEV_EVENT_OVERRIDE` sind ausschließlich lokale Entwicklungs-/Previewhilfen und müssen in jedem verteilten Share-Link deaktiviert beziehungsweise leer bleiben.
+- `dist/streamelements/production/` gehört fest zu `halloween-2026` und enthält nur visuelle Felder.
+- `dist/streamelements/test/` gehört fest zu `halloween-2026-test` und enthält die Operator-Testbuttons.
 
-v0.4 verarbeitet native `onEventReceived`-Nachrichten mit `listener === "message"`. Das Widget filtert auf das automatisch aufgelöste Streamer-/Minion-Paar und sendet nur die Chataktion an `minion-action`; Damage, Success und Bossmutation bestimmt der Server. Es schreibt selbst keine Chatnachrichten und benötigt weder Bot noch OAuth.
+In StreamElements wird jeweils kopiert:
 
-Für Realtime lädt `widget.html` den browser-sicheren Supabase-Client. Stateänderungen führen zu einem konsistenten Re-Fetch, zusätzlich bleibt ein Fünf-Sekunden-Fallback aktiv. Countdown und Recovery nutzen persistierte Serverzeitpunkte. Globale Raid-Eligibility und die Raid-Herold-Queue bleiben ausschließlich bei Twitch EventSub/Supabase authoritative.
+| StreamElements Tab | Builddatei |
+| --- | --- |
+| HTML | `html.html` |
+| CSS | `css.css` |
+| JS | `js.js` |
+| FIELDS | `fields.json` |
+
+Die Dateien haben keine unresolved Imports, keinen Node-/Vite-Runtimebedarf und keine lokalen URLs. Der browser-sichere Supabase Publishable Key, die Projekt-URL, der feste Eventslug und die HTTPS-Assetbasis werden beim Build eingebettet. Service Role, Twitch Secrets, EventSub Secret, Minion Pepper und Admin-Credentials sind niemals enthalten.
+
+## Kanalidentität
+
+`onWidgetLoad` liest `event.detail.channel.username`, normalisiert mit `trim().toLowerCase()` und löst ausschließlich innerhalb des fest eingebauten Events einen bereits aktivierten `streamers.twitch_login` auf. Es gibt keine sichtbaren Felder für Streamer-ID, Login, Eventslug oder Supabase-Konfiguration und keine automatische Registrierung.
+
+## Live-Runtime
+
+Das Widget lädt den event- und streamerbegrenzten State über `get_stream_elements_widget_state`, hört Supabase Realtime und führt bei jeder Änderung einen konsistenten Re-Fetch aus. Ein Fünf-Sekunden-Fallback behält den letzten sicheren State, synchronisiert periodisch neu und baut Realtime erneut auf. Chataktionen kommen ausschließlich über `onEventReceived` mit `listener === "message"` und gehen an `minion-action`.
+
+Das Testpaket verarbeitet die von StreamElements dokumentierten `widget-button`-Events. Jeder Button ruft `widget-test-action` auf. Die Funktion autorisiert serverseitig `is_test_account = true` plus Eventstatus `testing`; der Client bestimmt niemals HP, Damage oder Success. Das Produktionspaket enthält keine Button Fields und deaktiviert den Testcode zusätzlich beim Build.
+
+Die vollständige Operator-Anleitung steht in [LIVE_STREAMELEMENTS_TESTING.md](../docs/LIVE_STREAMELEMENTS_TESTING.md).

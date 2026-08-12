@@ -612,6 +612,7 @@ export class MockDataProvider implements DataProvider {
           twitchUrl: input.twitchUrl.trim() || `https://twitch.tv/${twitchLogin}`,
           slug: input.slug ? toSlug(input.slug) : existing.slug,
           avatarUrl: input.avatarUrl || null,
+          isTestAccount: Boolean(input.isTestAccount),
         });
       } else {
         draft.streamers.push({
@@ -624,6 +625,7 @@ export class MockDataProvider implements DataProvider {
           twitchUrl: input.twitchUrl.trim() || `https://twitch.tv/${twitchLogin}`,
           avatarUrl: input.avatarUrl || null,
           enabled: input.enabled,
+          isTestAccount: Boolean(input.isTestAccount),
           damage: 0,
           minionsDefeated: 0,
           live: false,
