@@ -1,6 +1,6 @@
 # Boss-Assets
 
-Das StreamElements-Widget verwendet aktuell `Kürbiskönig mit leuchtendem Zepter.png` als funktionales Boss-Asset über GitHub Pages. Kann das HTTPS-Asset nicht geladen werden, bleibt das Widget funktionsfähig und zeigt eine kleine Kürbis-Fallbackgrafik.
+Das StreamElements-Widget verwendet aktuell `Kürbiskönig mit leuchtendem Zepter.png` als funktionales Boss-Asset. Der Build veröffentlicht es mit dem URL-sicheren Namen `assets/boss/pumpkin-king.png` über GitHub Pages. Kann das HTTPS-Asset nicht geladen werden, bleibt das Widget funktionsfähig und zeigt eine kleine Kürbis-Fallbackgrafik.
 
 Der Rendervertrag sieht weiterhin die Zustände `idle`, `hit`, `attack` und `phase-change` vor. Das aktuelle Einzelbild deckt `idle` ab; Animationen können später ohne Änderung der Eventlogik ergänzt werden.
 
