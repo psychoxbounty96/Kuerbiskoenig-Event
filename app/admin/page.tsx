@@ -205,6 +205,18 @@ export default function AdminPage() {
     return { ok: accepted > 0, message: `${accepted}/${amount} Fake-Chataktionen verarbeitet.` };
   }
 
+  if (runtime.mode === "supabase" && session.loading && !session.authenticated) {
+    return (
+      <main className="admin-page admin-login-page">
+        <section className="admin-panel admin-login-panel" aria-live="polite">
+          <p className="overline">SUPABASE AUTH · GESCHÜTZTER BEREICH</p>
+          <h1>Admin-Sitzung wird geprüft …</h1>
+          <p>Eine vorhandene Anmeldung wird sicher wiederhergestellt.</p>
+        </section>
+      </main>
+    );
+  }
+
   if (runtime.mode === "supabase" && !session.authenticated) {
     return (
       <main className="admin-page admin-login-page">
