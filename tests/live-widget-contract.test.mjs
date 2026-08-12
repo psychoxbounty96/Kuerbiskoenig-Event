@@ -23,11 +23,13 @@ test("standalone StreamElements builds contain no local runtime or unresolved mo
   for (const name of ["production", "test"]) {
     const built = await widgetVariant(name);
     const all = `${built.html}\n${built.css}\n${built.js}\n${JSON.stringify(built.fields)}`;
-    assert.doesNotMatch(all, /__SUPABASE_|__EVENT_|__ASSET_|__TEST_/);
+    assert.doesNotMatch(all, /__SUPABASE_|__EVENT_|__ASSET_|__BOSS_|__TEST_/);
     assert.doesNotMatch(all, /localhost|127\.0\.0\.1|file:\/\//i);
     assert.doesNotMatch(all, /\bimport\s|\brequire\s*\(|\bprocess\./);
     assert.doesNotMatch(all, /SUPABASE_SERVICE_ROLE_KEY|TWITCH_CLIENT_SECRET|MINION_PARTICIPANT_PEPPER|sb_secret_/i);
     assert.match(built.html, /pumpkin-widget/);
+    assert.match(built.html, /boss-artwork/);
+    assert.match(built.js, /bossAsset: "https:\/\//);
     assert.equal(built.manifest.variant, name);
   }
 });
@@ -99,4 +101,11 @@ test("real widget lifecycle uses StreamElements events, Supabase Realtime, fallb
   assert.match(testing.js, /functions\/v1\/widget-test-action/);
   assert.match(testing.js, /FALLBACK_REFRESH_MS/);
   assert.match(testing.js, /lastSafeState/);
+  assert.match(testing.js, /await detectEditorMode\(\)/);
+  assert.match(testing.css, /\[hidden\]\s*\{\s*display:\s*none\s*!important;/i);
+  assert.match(testing.css, /\.minion-card\s*\{[^}]*position:\s*fixed/is);
+  assert.match(testing.css, /@keyframes bats-across-screen/);
+  assert.match(testing.js, /renderedMinionSignature/);
+  assert.match(testing.js, /MINION_ARTWORK_CACHE/);
+  assert.match(testing.js, /minion-progress/);
 });
