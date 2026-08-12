@@ -20,4 +20,9 @@ for (const folder of Object.values(artwork)) {
   await copyFile(source, resolve(targetDirectory, "placeholder.jpg"));
 }
 
-console.log(`Synced ${Object.keys(artwork).length} minion placeholder artworks.`);
+const bossSource = resolve(projectRoot, "assets", "boss", "Kürbiskönig mit leuchtendem Zepter.png");
+const bossTargetDirectory = resolve(projectRoot, "public", "assets", "boss");
+await mkdir(bossTargetDirectory, { recursive: true });
+await copyFile(bossSource, resolve(bossTargetDirectory, "pumpkin-king.png"));
+
+console.log(`Synced ${Object.keys(artwork).length} minion artworks and the boss artwork.`);
