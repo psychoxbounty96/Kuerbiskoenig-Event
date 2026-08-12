@@ -22,6 +22,8 @@ In StreamElements wird jeweils kopiert:
 
 Die Dateien haben keine unresolved Imports, keinen Node-/Vite-Runtimebedarf und keine lokalen URLs. Der browser-sichere Supabase Publishable Key, die Projekt-URL, der feste Eventslug und die HTTPS-Assetbasis werden beim Build eingebettet. Service Role, Twitch Secrets, EventSub Secret, Minion Pepper und Admin-Credentials sind niemals enthalten.
 
+Boss- und Minion-Grafiken werden über feste GitHub-Pages-HTTPS-URLs geladen. Das Bossbild erscheint im permanenten kompakten HUD. Ein aktives Minion öffnet eine deutlich größere, mittig platzierte Encounter Stage. Die Artwork-Nodes werden wiederverwendet, damit der 250-ms-Countdown keine Bilder neu lädt oder sichtbar flackern lässt. Flüche sind immer auf den gesamten Viewport bezogen und nicht auf die HUD-Abmessungen begrenzt.
+
 ## Kanalidentität
 
 `onWidgetLoad` liest `event.detail.channel.username`, normalisiert mit `trim().toLowerCase()` und löst ausschließlich innerhalb des fest eingebauten Events einen bereits aktivierten `streamers.twitch_login` auf. Es gibt keine sichtbaren Felder für Streamer-ID, Login, Eventslug oder Supabase-Konfiguration und keine automatische Registrierung.
