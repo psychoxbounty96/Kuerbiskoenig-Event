@@ -11,8 +11,10 @@ h1 { font-family:Georgia,serif;font-size:25px;margin:4px 0 10px; }
 .health-track { background:#201b21;border:1px solid rgba(205,175,126,.28);height:17px;overflow:hidden; }
 .health-track i { background:linear-gradient(90deg,#a54325,#f28a2e);display:block;height:100%;transition:width 900ms ease;width:0; }
 #boss-hp { display:block;font-size:13px;margin-top:7px; }
-.minion-card { border-color:rgba(166,98,203,.62);display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;max-width:490px;animation:minion-in .35s ease; }
+.minion-card { border-color:rgba(166,98,203,.62);display:grid;grid-template-columns:82px minmax(0,1fr) auto;gap:12px;align-items:center;max-width:490px;animation:minion-in .35s ease; }
 .minion-card .minion-icon { font-size:34px;filter:drop-shadow(0 0 9px rgba(166,98,203,.55)); }
+.minion-artwork { background:#020207;border:1px solid rgba(166,98,203,.46);border-radius:9px;box-shadow:0 0 16px rgba(83,155,255,.2);display:grid;height:92px;overflow:hidden;place-items:center;width:80px; }
+.minion-artwork img { display:block;height:100%;object-fit:contain;width:100%; }
 .minion-card h2 { font-family:Georgia,serif;font-size:20px;margin:4px 0;text-transform:uppercase; }
 .minion-card p { color:#cfc3b4;font-size:12px;margin:4px 0; }
 .minion-card .command { color:#fff2de;font-size:16px;font-weight:900; }

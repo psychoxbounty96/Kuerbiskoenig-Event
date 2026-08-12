@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import test from "node:test";
 
 async function readBuilt(path) {
@@ -37,4 +37,11 @@ test("ships website, admin and overlay application code in the static bundle", a
   assert.match(bundle, /Overlay erfolgreich verbunden/);
   assert.match(bundle, /Simulate Raid/);
   assert.doesNotMatch(bundle, /YOUR_PROJECT|sb_publishable_REPLACE_ME/);
+});
+
+test("publishes all minion placeholder images at stable GitHub Pages paths", async () => {
+  for (const folder of ["ghost", "zombie", "spider", "witch", "bats", "reaper", "herald"]) {
+    const image = new URL(`../github-pages-dist/assets/minions/${folder}/placeholder.jpg`, import.meta.url);
+    assert.ok((await stat(image)).size > 50_000, `${folder} artwork should be published`);
+  }
 });

@@ -16,6 +16,26 @@ import {
 } from "../lib/streamelements-adapter";
 import type { MinionInstance, OverlayIdentityResolution } from "../lib/types";
 
+const MINION_ARTWORK_FOLDERS: Readonly<Record<string, string>> = {
+  ghost: "ghost",
+  zombie_horde: "zombie",
+  spider_queen: "spider",
+  witch: "witch",
+  bat_swarm: "bats",
+  reaper: "reaper",
+  kings_herald: "herald",
+};
+
+function MinionArtwork({ minion }: { minion: MinionInstance }) {
+  const folder = MINION_ARTWORK_FOLDERS[minion.typeId];
+  if (!folder) return <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>;
+  return (
+    <span className="minion-artwork" aria-hidden="true">
+      <img src={`${import.meta.env.BASE_URL}assets/minions/${folder}/placeholder.jpg`} alt="" />
+    </span>
+  );
+}
+
 function RuntimeVisual({ minion, observing }: { minion: MinionInstance; observing: boolean }) {
   const config = minion.runtimeConfig;
   if (minion.typeId === "zombie_horde") {
@@ -201,7 +221,7 @@ export default function OverlayPage() {
         <section className={`minion-event minion-event--${minion.status}`} aria-live="assertive">
           {minion.status === "intro" && (
             <>
-              <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>
+              <MinionArtwork minion={minion} />
               <div>
                 <small>MINION-ALARM · {minion.streamerName}</small>
                 <h2>{minion.introTitle}</h2>
@@ -210,7 +230,7 @@ export default function OverlayPage() {
           )}
 
           {minion.status === "active" && <>
-            <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>
+            <MinionArtwork minion={minion} />
             <div className="minion-copy">
               <small>{minion.gameMode} · {minion.damageClass}</small>
               <h2>{observing ? "Gut aufpassen …" : minion.gameplayTitle}</h2>
@@ -222,7 +242,7 @@ export default function OverlayPage() {
 
           {minion.status === "success" && (
             <>
-              <span className="result-icon" aria-hidden="true">✓</span>
+              <MinionArtwork minion={minion} />
               <div>
                 <small>MINION BESIEGT · {minion.streamerName}</small>
                 <h2>{minion.name} besiegt!</h2>
@@ -233,7 +253,7 @@ export default function OverlayPage() {
 
           {(minion.status === "failure" || minion.status === "expired") && (
             <>
-              <span className="ghost-icon" aria-hidden="true">👻</span>
+              <MinionArtwork minion={minion} />
               <div>
                 <small>MINION ENTKOMMEN · {minion.streamerName}</small>
                 <h2>{minion.name} war zu stark</h2>
@@ -242,7 +262,7 @@ export default function OverlayPage() {
             </>
           )}
 
-          {minion.status === "curse" && <div className="minion-curse-label"><small>FLUCH AKTIV</small><strong>{minion.failureCurseKey?.replaceAll("_", " ")}</strong></div>}
+          {minion.status === "curse" && <><MinionArtwork minion={minion} /><div className="minion-curse-label"><small>FLUCH AKTIV</small><strong>{minion.failureCurseKey?.replaceAll("_", " ")}</strong></div></>}
         </section>
       )}
     </main>

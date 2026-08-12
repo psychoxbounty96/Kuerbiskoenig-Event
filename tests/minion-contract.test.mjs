@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
@@ -67,4 +67,17 @@ test("StreamElements widget handles chat, server timestamps, realtime and exact 
   assert.match(source, /postgres_changes/);
   assert.match(source, /FALLBACK_REFRESH_MS/);
   assert.doesNotMatch(source, /damage\s*:/i);
+});
+
+test("all seven minions ship mapped placeholder artwork for Pages and StreamElements", async () => {
+  const source = await readFile(widgetUrl, "utf8");
+  const folders = ["ghost", "zombie", "spider", "witch", "bats", "reaper", "herald"];
+  for (const folder of folders) {
+    const file = new URL(`assets/minions/${folder}/placeholder.jpg`, root);
+    assert.ok((await stat(file)).size > 50_000, `${folder} artwork should be a real image`);
+    assert.match(source, new RegExp(folder));
+  }
+  assert.match(source, /MINION_ARTWORK_BASE/);
+  assert.match(source, /psychoxbounty96\.github\.io\/Kuerbiskoenig-Event\/assets\/minions/);
+  assert.match(source, /function minionArtwork/);
 });

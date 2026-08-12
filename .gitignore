@@ -40,6 +40,7 @@ yarn-error.log*
 
 /dist/
 /github-pages-dist/
+/public/assets/minions/
 /.wrangler/
 /outputs/
 /work/

@@ -104,7 +104,8 @@ test("EventSub HMAC covers message id, timestamp and exact raw body", async () =
   const signature = await createEventSubSignature("0123456789abcdef", "message-1", timestamp, '{"x":1}');
   assert.match(signature, /^sha256=[a-f0-9]{64}$/);
   assert.equal(constantTimeEqual(signature, signature), true);
-  assert.equal(constantTimeEqual(signature, `${signature.slice(0, -1)}0`), false);
+  const differentLastCharacter = signature.endsWith("0") ? "1" : "0";
+  assert.equal(constantTimeEqual(signature, `${signature.slice(0, -1)}${differentLastCharacter}`), false);
   assert.equal(isFreshEventSubTimestamp(timestamp), true);
   assert.equal(isFreshEventSubTimestamp("2020-01-01T00:00:00Z"), false);
 });
