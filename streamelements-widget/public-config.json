@@ -1,5 +1,6 @@
 {
   "supabaseUrl": "https://xydyeibmbxoaeyxocyoa.supabase.co",
   "publishableKey": "sb_publishable_QRpIf8Mog4awVvcQsFQI0Q_RuOMqNhj",
-  "assetBase": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions"
+  "assetBase": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions",
+  "bossAsset": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/boss/K%C3%BCrbisk%C3%B6nig%20mit%20leuchtendem%20Zepter.png"
 }
