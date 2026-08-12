@@ -48,5 +48,7 @@ test("publishes all minion placeholder images at stable GitHub Pages paths", asy
 
 test("publishes the boss artwork at the stable StreamElements URL", async () => {
   const image = new URL("../github-pages-dist/assets/boss/pumpkin-king.png", import.meta.url);
+  const legacyImage = new URL("../github-pages-dist/assets/boss/Kürbiskönig mit leuchtendem Zepter.png", import.meta.url);
   assert.ok((await stat(image)).size > 1_000_000, "boss artwork should be published");
+  assert.equal((await stat(legacyImage)).size, (await stat(image)).size, "existing widgets should retain a working boss URL");
 });
