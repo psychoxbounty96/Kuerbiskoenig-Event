@@ -488,6 +488,10 @@ export class MockDataProvider implements DataProvider {
     return { ok: true, message: "Event-Einstellungen gespeichert." };
   }
 
+  async adminRunPassiveTick(): Promise<ActionResult> {
+    return { ok: false, message: "Passive Ticks sind im Betreiberpfad ausschließlich über Supabase verfügbar." };
+  }
+
   async adminSetEventStatus(status: Extract<EventStatus, "draft" | "testing" | "active">): Promise<ActionResult> {
     this.commit((draft) => {
       draft.event.status = status;
@@ -613,6 +617,10 @@ export class MockDataProvider implements DataProvider {
           slug: input.slug ? toSlug(input.slug) : existing.slug,
           avatarUrl: input.avatarUrl || null,
           isTestAccount: Boolean(input.isTestAccount),
+          trackingEnabled: input.trackingEnabled ?? existing.trackingEnabled,
+          gameplayEnabled: input.gameplayEnabled ?? existing.gameplayEnabled,
+          publicVisible: input.publicVisible ?? existing.publicVisible,
+          includeInCalibration: input.includeInCalibration ?? existing.includeInCalibration,
         });
       } else {
         draft.streamers.push({
@@ -626,6 +634,10 @@ export class MockDataProvider implements DataProvider {
           avatarUrl: input.avatarUrl || null,
           enabled: input.enabled,
           isTestAccount: Boolean(input.isTestAccount),
+          trackingEnabled: input.trackingEnabled ?? true,
+          gameplayEnabled: input.gameplayEnabled ?? true,
+          publicVisible: input.publicVisible ?? !input.isTestAccount,
+          includeInCalibration: input.includeInCalibration ?? !input.isTestAccount,
           damage: 0,
           minionsDefeated: 0,
           live: false,

@@ -36,6 +36,7 @@ export interface DataProvider {
   adminSetBossHp(hp: number, options?: AdminActionOptions): Promise<ActionResult>;
   adminResetBoss(): Promise<ActionResult>;
   adminUpdateSettings(patch: Partial<EventSettingsState>): Promise<ActionResult>;
+  adminRunPassiveTick(): Promise<ActionResult>;
   adminSetEventStatus(status: Extract<EventStatus, "draft" | "testing" | "active">): Promise<ActionResult>;
   adminSpawnMinion(typeId: string, streamerId: string, options?: AdminActionOptions): Promise<ActionResult>;
   adminResolveMinion(instanceId: string, resolution: "success" | "failed" | "cancelled" | "expired"): Promise<ActionResult>;

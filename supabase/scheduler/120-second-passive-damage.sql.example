@@ -1,0 +1,23 @@
+-- Optional production scheduler. Do not enable until calibration is approved.
+-- Reuses project_url and service_role_key from Supabase Vault; never paste the
+-- real service-role key into this repository.
+select cron.schedule(
+  'kuerbiskoenig-passive-damage-every-two-minutes',
+  '*/2 * * * *',
+  $$
+    select net.http_post(
+      url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/process-passive-tick',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
+      ),
+      body := '{}'::jsonb
+    );
+  $$
+);
+
+-- Safe checks:
+-- select * from cron.job where jobname='kuerbiskoenig-passive-damage-every-two-minutes';
+-- select * from public.event_job_status where job_key='passive_damage_tick';
+-- Recoverable removal:
+-- select cron.unschedule('kuerbiskoenig-passive-damage-every-two-minutes');

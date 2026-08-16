@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -21,15 +21,14 @@ test("static build keeps privileged values out of browser configuration", async 
   assert.doesNotMatch(config, /SERVICE_ROLE|TWITCH_CLIENT_SECRET|EVENTSUB_SECRET|PARTICIPANT_PEPPER/);
 });
 
-test("deployment kit separates GitHub, Supabase and StreamElements", async () => {
-  const start = await read("deployment/START_HIER.md");
-  const packager = await read("scripts/create-deployment-kit.mjs");
-  assert.match(start, /1\. GitHub/);
-  assert.match(start, /2\. Supabase/);
-  assert.match(start, /3\. StreamElements/);
-  assert.match(packager, /01_GITHUB_REPOSITORY/);
-  assert.match(packager, /02_SUPABASE_BACKEND/);
-  assert.match(packager, /03_STREAMELEMENTS_WIDGET/);
+test("public repository omits internal reconstruction reports", async () => {
+  const reports = ["V0_4_REPORT.md", "LIVE_WIDGET_READINESS_REPORT.md", "docs/ARCHITECTURE.md", "docs/TWITCH_SETUP.md"];
+  for (const report of reports) {
+    await assert.rejects(access(new URL(`../${report}`, import.meta.url)));
+  }
+  const readme = await read("README.md");
+  assert.match(readme, /Interne Betreiber-, Wiederherstellungs- und Abschlussdokumentation/);
+  assert.doesNotMatch(readme, /supabase link|service_role_key|TWITCH_CLIENT_SECRET/i);
 });
 
 test("public page hides placeholder boss data until Supabase has synced", async () => {

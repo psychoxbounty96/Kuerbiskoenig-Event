@@ -10,7 +10,8 @@ export function PublicEventPage() {
   const { state, runtime } = useEventData();
   const phase = PHASES.find((item) => item.id === state.boss.phase) ?? PHASES[0];
   const milestone = getNextMilestone(state.boss.currentHp, state.boss.maxHp);
-  const ranking = state.streamers.filter((streamer) => streamer.enabled).sort((a, b) => b.damage - a.damage);
+  const publicStreamers = state.streamers.filter((streamer) => streamer.enabled && streamer.gameplayEnabled && streamer.publicVisible && !streamer.isTestAccount);
+  const ranking = [...publicStreamers].sort((a, b) => b.damage - a.damage);
 
   if (!runtime.lastSyncedAt) {
     const isLoading = runtime.status === "loading";
@@ -180,7 +181,7 @@ export function PublicEventPage() {
             </div>
           </div>
           <ul className="participant-list">
-            {state.streamers.filter((streamer) => streamer.enabled).map((streamer) => (
+            {publicStreamers.map((streamer) => (
               <li key={streamer.id}>
                 <a className="participant-avatar" href={streamer.twitchUrl} target="_blank" rel="noreferrer" aria-label={`${streamer.displayName} auf Twitch öffnen`}>
                   {streamer.displayName.slice(0, 1)}
@@ -218,8 +219,8 @@ export function PublicEventPage() {
         <div>
           <small>GEMEINSAM FAIR</small>
           <p>
-            Schwierigkeit und Minion-Schaden werden serverseitig mit einer abflachenden, vorläufigen Kurve skaliert.
-            Passive Viewer-Damage und direkter Raid-Schaden bleiben weiterhin deaktiviert.
+            Schwierigkeit, Minion-Schaden und optionale passive Viewer-Ticks werden ausschließlich serverseitig und mit
+            abflachenden Kurven berechnet. Raids verursachen niemals direkten Boss-Schaden.
           </p>
         </div>
       </section>
@@ -232,7 +233,7 @@ export function PublicEventPage() {
             <small>Community Boss Event</small>
           </span>
         </div>
-        <p>Prototype v0.4 · {runtime.mode === "supabase" ? "Supabase + Twitch + Minion Engine" : "sicherer Mockbetrieb"}</p>
+        <p>Live Event Engine · {runtime.mode === "supabase" ? "Supabase + Twitch + StreamElements" : "Developer Preview"}</p>
       </footer>
     </main>
   );

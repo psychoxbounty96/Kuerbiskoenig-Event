@@ -124,6 +124,10 @@ Deno.serve(async (request) => {
       targetType = "boss";
     } else if (action === "update_settings") {
       const input = (body.settings && typeof body.settings === "object" ? body.settings : {}) as Record<string, unknown>;
+      if (event.status !== "testing" && role !== "owner"
+        && (input.passiveDamageMode === "active" || input.passiveDamageEnabled === true)) {
+        return json({ ok: false, error: "owner_role_required_for_production_passive_damage" }, 403);
+      }
       const allowed: Record<string, string> = {
         eventPaused: "event_paused",
         damageEnabled: "damage_enabled",
@@ -132,16 +136,60 @@ Deno.serve(async (request) => {
         passiveDamageMultiplier: "passive_damage_multiplier",
         activeDamageMultiplier: "active_damage_multiplier",
         passiveTickSeconds: "passive_tick_seconds",
+        twitchTrackingEnabled: "twitch_tracking_enabled",
+        passiveDamageEnabled: "passive_damage_enabled",
+        passiveDamageMode: "passive_damage_mode",
+        passiveBaseDamage: "passive_base_damage",
+        passiveCurveExponent: "passive_curve_exponent",
+        passiveSoftCap: "passive_soft_cap",
+        passiveMinDamage: "passive_min_damage",
+        passiveMaxDamage: "passive_max_damage",
+        passiveUnderdogFactor: "passive_underdog_factor",
       };
       const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
       for (const [clientKey, dbKey] of Object.entries(allowed)) {
         if (Object.hasOwn(input, clientKey)) patch[dbKey] = input[clientKey];
+      }
+      const passiveKeys = new Set([
+        "passiveDamageEnabled", "passiveDamageMode", "passiveDamageMultiplier", "passiveTickSeconds",
+        "passiveBaseDamage", "passiveCurveExponent", "passiveSoftCap", "passiveMinDamage",
+        "passiveMaxDamage", "passiveUnderdogFactor",
+      ]);
+      if (Object.keys(input).some((key) => passiveKeys.has(key))) {
+        const { data: currentSettings, error: currentSettingsError } = await service.from("event_settings")
+          .select("passive_configuration_version").eq("event_id", event.id).single();
+        if (currentSettingsError) throw currentSettingsError;
+        patch.passive_configuration_version = Math.max(1, Math.floor(number(currentSettings?.passive_configuration_version ?? 1)) + 1);
       }
       const { data, error } = await service.from("event_settings").update(patch).eq("event_id", event.id).select().single();
       if (error) throw error;
       await service.rpc("touch_event", { p_event_id: event.id });
       result = data;
       targetType = "settings";
+    } else if (action === "run_passive_tick") {
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "passive_damage_tick", p_status: "running",
+        p_next_expected_at: null, p_metadata: { source: "admin" },
+      });
+      try {
+        const { data, error } = await service.rpc("process_passive_damage_tick", {
+          p_event_id: event.id,
+          p_now: new Date().toISOString(),
+        });
+        if (error) throw error;
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "passive_damage_tick", p_status: "healthy",
+          p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+        result = data;
+      } catch (error) {
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "passive_damage_tick", p_status: "error",
+          p_error: error instanceof Error ? error.message : "passive_tick_failed", p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+        throw error;
+      }
+      targetType = "passive_damage";
     } else if (action === "set_event_status") {
       const status = text(body.status).toLowerCase();
       if (!["draft", "testing", "active"].includes(status)) {
@@ -221,6 +269,10 @@ Deno.serve(async (request) => {
         avatar_url: text(streamer.avatarUrl) || null,
         enabled: boolean(streamer.enabled, true),
         is_test_account: boolean(streamer.isTestAccount),
+        tracking_enabled: boolean(streamer.trackingEnabled, true),
+        gameplay_enabled: boolean(streamer.gameplayEnabled, true),
+        public_visible: boolean(streamer.publicVisible, true),
+        include_in_calibration: boolean(streamer.includeInCalibration, true),
         sort_order: Math.floor(number(streamer.sortOrder ?? 0)),
         updated_at: new Date().toISOString(),
         ...(streamerId ? { twitch_user_id: twitchUserId ?? null } : {}),
@@ -231,6 +283,15 @@ Deno.serve(async (request) => {
         : service.from("streamers").insert(row);
       const { data, error } = await query.select().single();
       if (error) throw error;
+      if (!row.enabled || !row.tracking_enabled) {
+        const { error: offlineError } = await service.rpc("mark_twitch_stream_offline", {
+          p_event_id: event.id,
+          p_streamer_id: data.id,
+          p_observed_at: new Date().toISOString(),
+          p_source: row.enabled ? "tracking_disabled" : "streamer_disabled",
+        });
+        if (offlineError) throw offlineError;
+      }
       await service.rpc("touch_event", { p_event_id: event.id });
       result = data;
       targetType = "streamer";
@@ -262,17 +323,49 @@ Deno.serve(async (request) => {
       targetId = streamerId;
     } else if (action === "sync_twitch_streams") {
       const streamerId = text(body.streamerId) || undefined;
-      result = await syncTwitchStreams(service, twitchClientFromEnvironment(), event.id, streamerId);
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "twitch_sync", p_status: "running",
+        p_next_expected_at: null, p_metadata: { source: "admin" },
+      });
+      try {
+        result = await syncTwitchStreams(service, twitchClientFromEnvironment(), event.id, streamerId);
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "twitch_sync", p_status: "healthy",
+          p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+      } catch (error) {
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "twitch_sync", p_status: "error",
+          p_error: error instanceof Error ? error.message : "twitch_sync_failed", p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+        throw error;
+      }
       targetType = "twitch_integration";
       targetId = streamerId;
     } else if (action === "sync_eventsub_subscriptions") {
       if (role !== "owner" && role !== "admin") return json({ ok: false, error: "admin_role_required" }, 403);
-      result = await syncEventSubSubscriptions(
-        service,
-        twitchClientFromEnvironment(),
-        Deno.env.get("TWITCH_EVENTSUB_CALLBACK_URL") ?? "",
-        Deno.env.get("TWITCH_EVENTSUB_SECRET") ?? "",
-      );
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "eventsub_sync", p_status: "running",
+        p_next_expected_at: null, p_metadata: { source: "admin" },
+      });
+      try {
+        result = await syncEventSubSubscriptions(
+          service,
+          twitchClientFromEnvironment(),
+          Deno.env.get("TWITCH_EVENTSUB_CALLBACK_URL") ?? "",
+          Deno.env.get("TWITCH_EVENTSUB_SECRET") ?? "",
+        );
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "eventsub_sync", p_status: "healthy",
+          p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+      } catch (error) {
+        await service.rpc("mark_event_job_status", {
+          p_event_id: event.id, p_job_key: "eventsub_sync", p_status: "error",
+          p_error: error instanceof Error ? error.message : "eventsub_sync_failed", p_next_expected_at: null, p_metadata: { source: "admin" },
+        });
+        throw error;
+      }
       targetType = "twitch_eventsub";
     } else if (action === "simulate_raid") {
       const fromStreamerId = text(body.fromStreamerId);
@@ -281,13 +374,13 @@ Deno.serve(async (request) => {
         return json({ ok: false, error: "distinct_raid_streamers_required" }, 400);
       }
       const { data: raidStreamers, error: streamerError } = await service.from("streamers")
-        .select("id,twitch_user_id,enabled")
+        .select("id,twitch_user_id,enabled,gameplay_enabled")
         .eq("event_id", event.id)
         .in("id", [fromStreamerId, toStreamerId]);
       if (streamerError) throw streamerError;
       const from = raidStreamers?.find((streamer) => streamer.id === fromStreamerId);
       const to = raidStreamers?.find((streamer) => streamer.id === toStreamerId);
-      if (!from?.enabled || !to?.enabled || !from.twitch_user_id || !to.twitch_user_id) {
+      if (!from?.enabled || !to?.enabled || !from.gameplay_enabled || !to.gameplay_enabled || !from.twitch_user_id || !to.twitch_user_id) {
         return json({ ok: false, error: "raid_streamers_must_be_enabled_and_resolved" }, 400);
       }
       const manualMessageId = `manual:${crypto.randomUUID()}`;
@@ -326,6 +419,9 @@ Deno.serve(async (request) => {
       responseMessage = `${summary.current ?? 0} EventSub-Subscriptions aktiv/pending; ${summary.created ?? 0} erstellt, ${summary.removed ?? 0} entfernt.`;
     } else if (action === "simulate_raid") {
       responseMessage = "Test-Raid gespeichert; kein Raid-Bonus und kein Boss-Schaden ausgelöst.";
+    } else if (action === "run_passive_tick") {
+      const summary = result as { previewed?: number; applied?: number; skipped?: number; idempotent?: number };
+      responseMessage = `Passiver Tick: ${summary.applied ?? 0} angewendet, ${summary.previewed ?? 0} Vorschau, ${summary.skipped ?? 0} übersprungen, ${summary.idempotent ?? 0} bereits verarbeitet.`;
     } else if (action === "set_event_status") {
       responseMessage = text(body.status) === "active" ? "Event zentral aktiviert." : `Eventstatus auf ${text(body.status)} gesetzt.`;
     }

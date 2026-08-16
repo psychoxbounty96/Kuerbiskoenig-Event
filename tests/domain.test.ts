@@ -24,6 +24,16 @@ test("configured damage composes the server-mirrored multipliers", () => {
     activeDamageMultiplier: 2,
     passiveDamageMultiplier: 0.5,
     passiveTickSeconds: 120,
+    twitchTrackingEnabled: true,
+    passiveDamageEnabled: false,
+    passiveDamageMode: "disabled",
+    passiveBaseDamage: 10,
+    passiveCurveExponent: 0.72,
+    passiveSoftCap: 50,
+    passiveMinDamage: 0,
+    passiveMaxDamage: 5_000,
+    passiveUnderdogFactor: 0.15,
+    passiveConfigurationVersion: 1,
   };
   assert.equal(computeConfiguredDamage(1_000, settings), 3_000);
   assert.equal(clampBossHp(-500, 10_000), 0);

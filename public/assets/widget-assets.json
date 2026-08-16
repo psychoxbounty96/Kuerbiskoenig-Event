@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "clipProfiles": {
+    "minion-static": {
+      "intro": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "idle": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "observe": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "active": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "success": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "exit" },
+      "failure": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "exit" },
+      "curse": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "exit": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false }
+    },
+    "curse-static": {
+      "enter": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "loop" },
+      "loop": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "exit": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false }
+    }
+  },
+  "boss": {
+    "type": "static",
+    "scale": 1,
+    "anchor": { "x": 50, "y": 100 },
+    "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/boss/pumpkin-king.png",
+    "fallbackUrl": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/boss/pumpkin-king.png",
+    "clips": {
+      "idle": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "hit": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "heavy_hit": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "phase_change": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "attack": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "laugh": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false, "next": "idle" },
+      "defeated": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": false },
+      "prelaunch": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "paused": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "phase_1": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "phase_2": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "phase_3": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true },
+      "phase_4": { "startFrame": 0, "frameCount": 1, "fps": 1, "loop": true }
+    }
+  },
+  "minions": {
+    "ghost": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/ghost/placeholder.jpg" },
+    "zombie_horde": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/zombie/placeholder.jpg" },
+    "spider_queen": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/spider/placeholder.jpg" },
+    "witch": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/witch/placeholder.jpg" },
+    "bat_swarm": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/bats/placeholder.jpg" },
+    "reaper": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/reaper/placeholder.jpg" },
+    "kings_herald": { "type": "static", "profile": "minion-static", "url": "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions/herald/placeholder.jpg" }
+  },
+  "curses": {
+    "fog": { "type": "css", "profile": "curse-static" },
+    "zombie_hands": { "type": "css", "profile": "curse-static" },
+    "spider_web": { "type": "css", "profile": "curse-static" },
+    "witch_distortion": { "type": "css", "profile": "curse-static" },
+    "bat_attack": { "type": "css", "profile": "curse-static" },
+    "darkness": { "type": "css", "profile": "curse-static" },
+    "royal_curse": { "type": "css", "profile": "curse-static" }
+  }
+}

@@ -42,10 +42,10 @@ const plain = (body: string, status = 200) => new Response(body, {
 
 async function affectedStreamers(twitchUserId: string) {
   const { data, error } = await service.from("streamers")
-    .select("id,event_id,enabled")
+    .select("id,event_id,enabled,tracking_enabled,gameplay_enabled")
     .eq("twitch_user_id", twitchUserId);
   if (error) throw error;
-  return (data ?? []) as Array<{ id: string; event_id: string; enabled: boolean }>;
+  return (data ?? []) as Array<{ id: string; event_id: string; enabled: boolean; tracking_enabled: boolean; gameplay_enabled: boolean }>;
 }
 
 async function markWebhookReceived(eventIds: Iterable<string>) {
@@ -177,7 +177,7 @@ Deno.serve(async (request) => {
       const twitchUserId = String(event.broadcaster_user_id ?? "");
       const streamId = String(event.id ?? "");
       const startedAt = String(event.started_at ?? new Date().toISOString());
-      const streamers = (await affectedStreamers(twitchUserId)).filter((streamer) => streamer.enabled);
+      const streamers = (await affectedStreamers(twitchUserId)).filter((streamer) => streamer.enabled && streamer.tracking_enabled);
       const twitch = twitchClientFromEnvironment();
       for (const streamer of streamers) {
         affectedEvents.add(streamer.event_id);
@@ -218,7 +218,7 @@ Deno.serve(async (request) => {
       }
     } else if (subscriptionType === "stream.offline") {
       const twitchUserId = String(event.broadcaster_user_id ?? "");
-      const streamers = (await affectedStreamers(twitchUserId)).filter((streamer) => streamer.enabled);
+      const streamers = (await affectedStreamers(twitchUserId)).filter((streamer) => streamer.enabled && streamer.tracking_enabled);
       for (const streamer of streamers) {
         affectedEvents.add(streamer.event_id);
         const { error } = await service.rpc("mark_twitch_stream_offline", {
@@ -234,7 +234,7 @@ Deno.serve(async (request) => {
       const toId = String(event.to_broadcaster_user_id ?? "");
       const fromStreamers = await affectedStreamers(fromId);
       const toStreamers = await affectedStreamers(toId);
-      [...fromStreamers, ...toStreamers].filter((streamer) => streamer.enabled)
+      [...fromStreamers, ...toStreamers].filter((streamer) => streamer.enabled && streamer.tracking_enabled)
         .forEach((streamer) => affectedEvents.add(streamer.event_id));
       for (const eventId of affectedEvents) {
         const { error } = await service.rpc("record_twitch_raid", {

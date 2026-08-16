@@ -4,6 +4,9 @@ const WIDGET_CONFIG = Object.freeze({
   publishableKey: "sb_publishable_QRpIf8Mog4awVvcQsFQI0Q_RuOMqNhj",
   eventSlug: "halloween-2026",
   assetBase: "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/minions",
+  bossAsset: "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/boss/pumpkin-king.png",
+  assetManifest: "https://psychoxbounty96.github.io/Kuerbiskoenig-Event/assets/widget-assets.json",
+  buildVersion: "0.5.0",
   testControls: "false" === "true",
 });
 
@@ -23,6 +26,7 @@ const BUTTON_ACTIONS = Object.freeze({
   testReloadState: "reload_state",
   testRunTick: "tick",
   testViewerSample: "create_test_viewer_sample",
+  testPassiveTick: "test_passive_tick",
   testBossHit: "test_boss_hit",
   testBossBigHit: "test_boss_big_hit",
   testResetBoss: "reset_test_boss",
@@ -73,6 +77,13 @@ let supabaseStatus = "disconnected";
 let localCurse = null;
 let localCurseTimer = null;
 let lastTestMessage = "";
+let renderedMinionSignature = "";
+let assetManifest = null;
+let animationFrame = null;
+let previousBossHp = null;
+let previousBossPhase = null;
+let bossTransitionTimer = null;
+const actorStates = new Map();
 
 function normalizeTwitchLogin(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -109,6 +120,198 @@ function safeDebug(message, detail) {
   }
 }
 
+function validAsset(asset) {
+  if (!asset || !["static", "spritesheet", "css"].includes(asset.type)) return false;
+  if (asset.type === "css") return true;
+  if (typeof asset.url !== "string" || !asset.url.startsWith("https://")) return false;
+  if (asset.type === "static") return true;
+  const columns = Math.floor(number(asset.columns));
+  const rows = Math.floor(number(asset.rows));
+  const frameCount = Math.floor(number(asset.frameCount || columns * rows));
+  return columns > 0 && rows > 0 && frameCount > 0;
+}
+
+async function loadAssetManifest() {
+  try {
+    const response = await fetch(WIDGET_CONFIG.assetManifest, { cache: "no-cache" });
+    if (!response.ok) throw new Error(`asset_manifest_${response.status}`);
+    const payload = await response.json();
+    if (!payload || number(payload.version) < 1 || !validAsset(payload.boss)) throw new Error("asset_manifest_invalid");
+    assetManifest = payload;
+    const urls = [payload.boss, ...Object.values(payload.minions || {}), ...Object.values(payload.curses || {})]
+      .flatMap((asset) => [asset?.url, asset?.fallbackUrl])
+      .filter((url) => typeof url === "string" && url.startsWith("https://"));
+    for (const url of new Set(urls)) {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = url;
+    }
+    safeDebug("Asset-Manifest geladen", { version: payload.version });
+  } catch (error) {
+    assetManifest = null;
+    safeDebug("Asset-Manifest nicht verfügbar; HTTPS-Fallbacks bleiben aktiv.", error instanceof Error ? error.message : "unknown");
+  }
+}
+
+function fallbackMinionAsset(key) {
+  const folder = MINION_ARTWORK_FOLDERS[key];
+  return folder ? `${WIDGET_CONFIG.assetBase}/${folder}/placeholder.jpg` : null;
+}
+
+function actorAsset(kind, key) {
+  if (kind === "boss") {
+    const boss = assetManifest?.boss;
+    const resolved = boss ? { ...boss, clips: boss.clips || assetManifest?.clipProfiles?.[boss.profile] } : null;
+    return validAsset(resolved) ? resolved : { type: "static", url: WIDGET_CONFIG.bossAsset };
+  }
+  const candidate = kind === "minion" ? assetManifest?.minions?.[key] : assetManifest?.curses?.[key];
+  const resolved = candidate ? { ...candidate, clips: candidate.clips || assetManifest?.clipProfiles?.[candidate.profile] } : null;
+  if (validAsset(resolved)) return resolved;
+  if (kind === "minion") return { type: "static", url: fallbackMinionAsset(key) };
+  return { type: "css" };
+}
+
+function actorFrame(asset, clipName, elapsedMs) {
+  const columns = Math.max(1, Math.floor(number(asset.columns || 1)));
+  const rows = Math.max(1, Math.floor(number(asset.rows || 1)));
+  const totalFrames = Math.max(1, Math.floor(number(asset.frameCount || columns * rows)));
+  const clip = asset.clips?.[clipName] || asset.clips?.idle || { startFrame: 0, frameCount: totalFrames, fps: 8, loop: true };
+  const start = Math.min(totalFrames - 1, Math.max(0, Math.floor(number(clip.startFrame))));
+  const count = Math.min(totalFrames - start, Math.max(1, Math.floor(number(clip.frameCount || 1))));
+  const frameDuration = 1_000 / Math.min(60, Math.max(1, number(clip.fps || 8)));
+  const rawOffset = fieldData.reducedMotion ? 0 : Math.floor(Math.max(0, elapsedMs) / frameDuration);
+  const complete = !clip.loop && rawOffset >= count;
+  const offset = clip.loop ? rawOffset % count : Math.min(count - 1, rawOffset);
+  const frame = start + offset;
+  return { column: frame % columns, row: Math.floor(frame / columns), columns, rows, complete, next: complete ? clip.next : null };
+}
+
+function showActorFallback(root, symbol) {
+  if (!root) return;
+  root.dataset.actorState = "fallback";
+  const fallback = root.querySelector(".sprite-actor__fallback");
+  if (fallback) fallback.textContent = symbol || "";
+}
+
+function setActor(id, kind, key, clipName, symbol) {
+  const root = document.getElementById(id);
+  if (!root) return;
+  const asset = actorAsset(kind, key);
+  const signature = `${kind}:${key}:${asset.type}:${asset.url || "css"}`;
+  const previous = actorStates.get(id);
+  const requestedClip = clipName || "idle";
+  const next = previous?.signature === signature ? previous : {
+    root, asset, signature, clip: requestedClip, startedAt: performance.now(), symbol: symbol || "", ready: false, loading: false,
+  };
+  next.root = root;
+  next.asset = asset;
+  next.symbol = symbol || "";
+  if (next.clip !== requestedClip) {
+    next.clip = requestedClip;
+    next.startedAt = performance.now();
+  }
+  actorStates.set(id, next);
+  root.dataset.actorKey = key || "none";
+  root.dataset.actorClip = next.clip;
+  root.style.setProperty("--actor-scale", String(Math.max(0.1, Math.min(4, number(asset.scale || 1)))));
+  root.style.setProperty("--actor-anchor-x", `${Math.min(100, number(asset.anchor?.x ?? 50))}%`);
+  root.style.setProperty("--actor-anchor-y", `${Math.min(100, number(asset.anchor?.y ?? 50))}%`);
+  const image = root.querySelector(".sprite-actor__image");
+  const sheet = root.querySelector(".sprite-actor__sheet");
+  if (asset.type === "css") {
+    root.dataset.actorState = "css";
+    return;
+  }
+  if (!asset.url) {
+    showActorFallback(root, symbol);
+    return;
+  }
+  if (asset.type === "static") {
+    if (sheet) sheet.hidden = true;
+    if (image) {
+      image.hidden = false;
+      if (image.dataset.src !== asset.url) {
+        root.dataset.actorState = "loading";
+        image.dataset.src = asset.url;
+        image.onload = () => { next.ready = true; root.dataset.actorState = "ready"; };
+        image.onerror = () => {
+          if (asset.fallbackUrl && image.dataset.src !== asset.fallbackUrl) {
+            image.dataset.src = asset.fallbackUrl;
+            image.src = asset.fallbackUrl;
+            return;
+          }
+          image.hidden = true;
+          showActorFallback(root, symbol);
+        };
+        image.src = asset.url;
+      }
+    }
+    return;
+  }
+  if (image) image.hidden = true;
+  if (sheet) {
+    if (next.ready) {
+      sheet.hidden = false;
+      root.dataset.actorState = "ready";
+    } else if (!next.loading) {
+      next.loading = true;
+      sheet.hidden = true;
+      root.dataset.actorState = "loading";
+      const probe = new Image();
+      probe.onload = () => {
+        if (actorStates.get(id) !== next) return;
+        next.loading = false;
+        next.ready = true;
+        sheet.style.backgroundImage = `url("${asset.url}")`;
+        sheet.style.backgroundSize = `${Math.max(1, number(asset.columns)) * 100}% ${Math.max(1, number(asset.rows)) * 100}%`;
+        sheet.hidden = false;
+        root.dataset.actorState = "ready";
+      };
+      probe.onerror = () => {
+        if (actorStates.get(id) !== next) return;
+        next.loading = false;
+        if (asset.fallbackUrl && image) {
+          image.hidden = false;
+          image.onload = () => { root.dataset.actorState = "ready"; };
+          image.onerror = () => showActorFallback(root, symbol);
+          image.src = asset.fallbackUrl;
+        } else showActorFallback(root, symbol);
+      };
+      probe.src = asset.url;
+    }
+  }
+}
+
+function animateActors(now) {
+  for (const state of actorStates.values()) {
+    if (state.asset.type !== "spritesheet") continue;
+    const sheet = state.root.querySelector(".sprite-actor__sheet");
+    if (!sheet) continue;
+    const frame = actorFrame(state.asset, state.clip, now - state.startedAt);
+    const x = frame.columns === 1 ? 0 : frame.column / (frame.columns - 1) * 100;
+    const y = frame.rows === 1 ? 0 : frame.row / (frame.rows - 1) * 100;
+    sheet.style.backgroundPosition = `${x}% ${y}%`;
+    if (frame.complete && frame.next && frame.next !== state.clip) {
+      state.clip = frame.next;
+      state.startedAt = now;
+      state.root.dataset.actorClip = frame.next;
+    }
+  }
+  animationFrame = window.requestAnimationFrame(animateActors);
+}
+
+function startActorEngine() {
+  if (document.hidden) return;
+  if (animationFrame !== null) return;
+  animationFrame = window.requestAnimationFrame(animateActors);
+}
+
+function stopActorEngine() {
+  if (animationFrame === null) return;
+  window.cancelAnimationFrame(animationFrame);
+  animationFrame = null;
+}
+
 function setIdentity(next) {
   identity = next;
   document.getElementById("pumpkin-widget").dataset.identityStatus = next.status;
@@ -121,6 +324,8 @@ function applyVisualFields() {
   const widget = document.getElementById("pumpkin-widget");
   widget.style.setProperty("--widget-scale", String(scale / 100));
   widget.dataset.alignment = alignment;
+  widget.classList.toggle("reduced-motion", Boolean(fieldData.reducedMotion));
+  setActor("boss-actor", "boss", "pumpkin_king", "idle", "🎃");
 }
 
 function diagnosticsVisible() {
@@ -142,6 +347,8 @@ function updateDiagnostics() {
     "debug-boss": lastSafeState?.boss?.id ? "loaded" : "not loaded",
     "debug-minion": active ? `${active.key} · ${active.status}` : "none",
     "debug-sync": lastSyncAt ? new Date(lastSyncAt).toLocaleTimeString("de-DE") : "never",
+    "debug-build": WIDGET_CONFIG.buildVersion,
+    "debug-assets": assetManifest ? `manifest v${assetManifest.version}` : "HTTPS-Fallback",
     "debug-action": lastTestMessage || "none",
   };
   for (const [id, value] of Object.entries(values)) {
@@ -214,21 +421,11 @@ function element(tag, className, text) {
   return node;
 }
 
-function minionArtwork(minion) {
-  const folder = MINION_ARTWORK_FOLDERS[minion.key];
-  if (!folder) return element("span", "minion-icon", minion.icon || "👻");
-  const frame = element("span", "minion-artwork");
-  const image = element("img");
-  image.src = `${WIDGET_CONFIG.assetBase}/${folder}/placeholder.jpg`;
-  image.alt = "";
-  image.setAttribute("aria-hidden", "true");
-  image.addEventListener("error", () => {
-    image.remove();
-    frame.classList.add("is-fallback");
-    frame.append(element("span", "minion-icon", minion.icon || "👻"));
-  }, { once: true });
-  frame.append(image);
-  return frame;
+function setMinionActor(minion) {
+  const clip = minion.status === "active"
+    ? (Date.now() < milliseconds(minion.accepts_answers_at) ? "observe" : "active")
+    : minion.status;
+  setActor("minion-actor", "minion", minion.key, clip, minion.icon || "👻");
 }
 
 function renderVisual(minion, observing) {
@@ -244,13 +441,14 @@ function renderVisual(minion, observing) {
   }
   if (minion.key === "spider_queen") {
     for (const option of config.options || []) {
-      const item = element("span", String(config.queen_index) === String(option) ? "is-target" : "", "🕷️");
+      const item = element("span", observing && String(config.queen_index) === String(option) ? "is-target" : "", "🕷️");
       item.append(element("b", "", String(option)));
       box.append(item);
     }
     return box;
   }
   if (minion.key === "bat_swarm" && observing) {
+    box.classList.add("minion-visual--bats");
     for (let index = 0; index < number(config.count); index += 1) box.append(element("span", "", "🦇"));
     return box;
   }
@@ -273,60 +471,104 @@ function renderCurse(minion) {
   if (!curseKey) {
     layer.hidden = true;
     layer.className = "curse-layer";
+    actorStates.delete("curse-actor");
     return;
   }
   layer.hidden = false;
   layer.className = `curse-layer curse-layer--${curseKey}`;
+  const current = actorStates.get("curse-actor");
+  const clip = current?.root?.dataset?.actorKey === curseKey ? current.clip : "enter";
+  setActor("curse-actor", "curse", curseKey, clip, "");
 }
 
 function renderMinion(minion) {
   const card = document.getElementById("minion-card");
   if (!minion) {
     card.hidden = true;
-    card.replaceChildren();
+    card.dataset.minion = "none";
+    renderedMinionSignature = "";
     renderCurse(null);
     return;
   }
   renderCurse(minion);
   card.hidden = false;
   card.className = `minion-card minion-card--${minion.status}`;
-  const icon = minionArtwork(minion);
-  const copy = element("div", "minion-copy");
-  const timer = element("time", "");
+  card.dataset.minion = minion.key;
+  const now = Date.now();
+  const observing = minion.status === "active" && now < milliseconds(minion.accepts_answers_at);
+  setMinionActor(minion);
+  const kicker = document.getElementById("minion-kicker");
+  const title = document.getElementById("minion-title");
+  const visualSlot = document.getElementById("minion-visual");
+  const instruction = document.getElementById("minion-instruction");
+  const progress = document.getElementById("minion-progress");
+  const result = document.getElementById("minion-result");
+  const timer = document.getElementById("minion-timer");
+  const signature = [
+    minion.id,
+    minion.status,
+    observing,
+    number(minion.required_participants),
+    number(minion.damage_awarded),
+    JSON.stringify(minion.runtime_config || {}),
+  ].join("|");
+  if (signature === renderedMinionSignature) {
+    if (progress) progress.textContent = `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`;
+    if (timer && minion.status === "active" && !observing) {
+      const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
+      timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+    }
+    return;
+  }
+  renderedMinionSignature = signature;
+  visualSlot.replaceChildren();
+  visualSlot.hidden = true;
+  instruction.hidden = true;
+  progress.hidden = true;
+  result.hidden = true;
+  timer.hidden = true;
   if (minion.status === "intro") {
-    copy.append(element("small", "", `MINION-ALARM · ${identity.streamerDisplayName}`), element("h2", "", minion.intro_title || minion.name));
-    card.replaceChildren(icon, copy);
+    kicker.textContent = `MINION-ALARM · ${identity.streamerDisplayName}`;
+    title.textContent = minion.intro_title || minion.name;
     return;
   }
   if (minion.status === "active") {
-    const now = Date.now();
-    const observing = now < milliseconds(minion.accepts_answers_at);
-    copy.append(element("small", "", `${minion.game_mode} · ${minion.damage_class}`), element("h2", "", observing ? "Gut aufpassen …" : minion.gameplay_title || minion.name));
+    kicker.textContent = `${minion.game_mode} · ${minion.damage_class}`;
+    title.textContent = observing ? "Gut aufpassen …" : minion.gameplay_title || minion.name;
     const visual = renderVisual(minion, observing);
-    if (visual) copy.append(visual);
+    if (visual) {
+      visualSlot.className = visual.className;
+      visualSlot.replaceChildren(...visual.childNodes);
+      visualSlot.hidden = false;
+    }
     if (!observing) {
-      copy.append(element("p", "command", minion.instruction || "Schreibe !boss"), element("p", "progress", `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`));
+      instruction.textContent = minion.instruction || "Schreibe !boss";
+      instruction.hidden = false;
+      progress.textContent = `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`;
+      progress.hidden = false;
       const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
       timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
-      card.replaceChildren(icon, copy, timer);
-    } else {
-      card.replaceChildren(icon, copy);
+      timer.hidden = false;
     }
     return;
   }
   if (minion.status === "success") {
-    copy.append(element("small", "", "MINION BESIEGT"), element("h2", "", `${minion.name} besiegt!`), element("p", "", `${number(minion.damage_awarded).toLocaleString("de-DE")} Boss-Schaden`));
-    card.replaceChildren(icon, copy);
+    kicker.textContent = "MINION BESIEGT";
+    title.textContent = `${minion.name} besiegt!`;
+    result.textContent = `${number(minion.damage_awarded).toLocaleString("de-DE")} Boss-Schaden`;
+    result.hidden = false;
     return;
   }
   if (minion.status === "failure") {
-    copy.append(element("small", "", "MINION ENTKOMMEN"), element("h2", "", `${minion.name} war zu stark`), element("p", "", `Fluch: ${String(minion.failure_curse_key || "").replaceAll("_", " ")}`));
-    card.replaceChildren(icon, copy);
+    kicker.textContent = "MINION ENTKOMMEN";
+    title.textContent = `${minion.name} war zu stark`;
+    result.textContent = `Fluch: ${String(minion.failure_curse_key || "").replaceAll("_", " ")}`;
+    result.hidden = false;
     return;
   }
   if (minion.status === "curse") {
-    copy.append(element("small", "", "FLUCH AKTIV"), element("h2", "", String(minion.failure_curse_key || "").replaceAll("_", " ")));
-    card.replaceChildren(icon, copy);
+    kicker.textContent = "FLUCH AKTIV";
+    title.textContent = String(minion.failure_curse_key || "").replaceAll("_", " ");
     return;
   }
   card.hidden = true;
@@ -350,6 +592,18 @@ function renderEvent(state) {
   const maxHp = number(boss.max_hp);
   const currentHp = Math.min(maxHp, number(boss.current_hp));
   const percent = maxHp ? (currentHp / maxHp) * 100 : 0;
+  const phase = Math.max(1, Math.min(4, Math.floor(number(boss.phase?.phase_number || boss.phase_number || boss.current_phase || 1))));
+  let bossClip = `phase_${phase}`;
+  if (currentHp <= 0) bossClip = "defeated";
+  else if (previousBossHp !== null && currentHp < previousBossHp) bossClip = previousBossHp - currentHp >= maxHp * 0.02 ? "heavy_hit" : "hit";
+  else if (previousBossPhase !== null && phase !== previousBossPhase) bossClip = "phase_change";
+  setActor("boss-actor", "boss", "pumpkin_king", bossClip, "🎃");
+  window.clearTimeout(bossTransitionTimer);
+  if (["hit", "heavy_hit", "phase_change"].includes(bossClip)) {
+    bossTransitionTimer = window.setTimeout(() => setActor("boss-actor", "boss", "pumpkin_king", `phase_${phase}`, "🎃"), 900);
+  }
+  previousBossHp = currentHp;
+  previousBossPhase = phase;
   document.getElementById("boss-name").textContent = boss.name || "Kürbiskönig";
   document.getElementById("boss-hp").hidden = fieldData.showHpNumbers === false;
   document.getElementById("boss-hp").textContent = `${Math.floor(currentHp).toLocaleString("de-DE")} / ${Math.floor(maxHp).toLocaleString("de-DE")} HP`;
@@ -541,17 +795,24 @@ async function detectEditorMode() {
   } catch {
     editorMode = false;
   }
+  if (diagnosticsVisible()) document.getElementById("pumpkin-widget").hidden = false;
   updateDiagnostics();
 }
 
-window.addEventListener("onWidgetLoad", (event) => {
+window.addEventListener("onWidgetLoad", async (event) => {
   fieldData = event?.detail?.fieldData || {};
+  startActorEngine();
   applyVisualFields();
-  void detectEditorMode();
+  void loadAssetManifest().then(() => {
+    applyVisualFields();
+    const active = currentMinion(lastSafeState);
+    if (active) setMinionActor(active);
+  });
+  await detectEditorMode();
   channelUsername = normalizeTwitchLogin(event?.detail?.channel?.username);
   if (!channelUsername) {
     safeDebug("StreamElements channel.username fehlt.");
-    hideOverlay("error");
+    showIdentityMessage("Kanal nicht erkannt", "StreamElements liefert keinen channel.username.");
     return;
   }
   queueRefresh(true);
@@ -568,4 +829,9 @@ window.addEventListener("onWidgetLoad", (event) => {
 window.addEventListener("onEventReceived", (event) => {
   if (event.detail?.listener === "message") void handleStreamElementsChatMessage(event);
   if (event.detail?.listener === "widget-button") handleWidgetButton(event);
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopActorEngine();
+  else startActorEngine();
 });

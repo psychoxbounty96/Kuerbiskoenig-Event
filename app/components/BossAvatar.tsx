@@ -9,29 +9,18 @@ export function BossAvatar({
   hit?: boolean;
   compact?: boolean;
 }) {
+  const assetUrl = `${import.meta.env.BASE_URL}assets/boss/pumpkin-king.png`;
   return (
     <div
       className={`boss-avatar${compact ? " boss-avatar--compact" : ""}${hit ? " is-hit" : ""}`}
       data-phase={phase}
       data-animation-state={hit ? "hit" : "idle"}
-      aria-label="Platzhaltergrafik des Kürbiskönigs"
+      aria-label="Kürbiskönig"
       role="img"
     >
-      <span className="crown" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-      <span className="stem" aria-hidden="true" />
-      <span className="pumpkin" aria-hidden="true">
-        <span className="pumpkin-ridge ridge-left" />
-        <span className="pumpkin-ridge ridge-right" />
-        <span className="eye eye-left" />
-        <span className="eye eye-right" />
-        <span className="mouth" />
-      </span>
-      <span className="mantle" aria-hidden="true" />
-      <span className="boss-placeholder-label">PLACEHOLDER</span>
+      <span className="boss-avatar__aura" aria-hidden="true" />
+      <img className="boss-avatar__image" src={assetUrl} alt="" aria-hidden="true" />
+      <span className="boss-avatar__fallback" aria-hidden="true">🎃</span>
     </div>
   );
 }

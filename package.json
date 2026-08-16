@@ -1,6 +1,6 @@
 {
   "name": "kuerbiskoenig-community-boss",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -14,8 +14,7 @@
     "start": "vite preview",
     "preview": "vite preview",
     "check:pages-env": "node scripts/check-pages-env.mjs",
-    "package:deployment": "node scripts/create-deployment-kit.mjs",
-    "test": "npm run typecheck && npm run lint && node --check streamelements-widget/widget.js && npm run build:widget && npm run build && node --test tests/rendered-html.test.mjs tests/github-pages-contract.test.mjs tests/supabase-contract.test.mjs tests/twitch-contract.test.mjs tests/minion-contract.test.mjs tests/live-widget-contract.test.mjs && tsx --test tests/domain.test.ts tests/twitch-domain.test.ts tests/minion-domain.test.ts",
+    "test": "npm run typecheck && npm run lint && node --check streamelements-widget/widget.js && npm run build:widget && npm run build && node --test tests/rendered-html.test.mjs tests/github-pages-contract.test.mjs tests/supabase-contract.test.mjs tests/twitch-contract.test.mjs tests/minion-contract.test.mjs tests/live-widget-contract.test.mjs tests/finalization-contract.test.mjs && tsx --test tests/domain.test.ts tests/twitch-domain.test.ts tests/minion-domain.test.ts tests/finalization-domain.test.ts",
     "typecheck": "tsc --noEmit --incremental false",
     "lint": "eslint . --ignore-pattern github-pages-dist --ignore-pattern node_modules-corrupt",
     "supabase:reset": "supabase db reset",
@@ -37,6 +36,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "16.4.0",
+    "tsx": "4.23.12",
     "typescript": "5.9.3",
     "typescript-eslint": "8.59.3",
     "vite": "8.0.13"

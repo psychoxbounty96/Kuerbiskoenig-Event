@@ -34,6 +34,12 @@
     "value": true,
     "group": "🎃 OVERLAY"
   },
+  "reducedMotion": {
+    "type": "checkbox",
+    "label": "Reduce animations",
+    "value": false,
+    "group": "🎃 OVERLAY"
+  },
   "showDebugPanel": {
     "type": "checkbox",
     "label": "Editor diagnostics",

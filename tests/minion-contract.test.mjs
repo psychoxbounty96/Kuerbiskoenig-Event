@@ -49,7 +49,7 @@ test("damage is class-based and server authoritative with idempotent boss mutati
 
 test("tick is service-only and cancellation guards cover pause, offline, disable and boss kill", async () => {
   const [sql, source] = await Promise.all([readFile(migrationUrl, "utf8"), readFile(tickUrl, "utf8")]);
-  assert.match(source, /authorization !== `Bearer \$\{SERVICE_ROLE_KEY\}`/);
+  assert.match(source, /constantTimeEqual\(authorization, `Bearer \$\{SERVICE_ROLE_KEY\}`\)/);
   assert.match(sql, /event_settings_cancel_minions/i);
   assert.match(sql, /streamer_runtime_cancel_minions/i);
   assert.match(sql, /streamers_cancel_minions/i);
@@ -80,5 +80,7 @@ test("all seven minions ship mapped placeholder artwork for Pages and StreamElem
   assert.match(source, /WIDGET_CONFIG\.assetBase/);
   const config = await readFile(new URL("streamelements-widget/public-config.json", root), "utf8");
   assert.match(config, /psychoxbounty96\.github\.io\/Kuerbiskoenig-Event\/assets\/minions/);
-  assert.match(source, /function minionArtwork/);
+  assert.match(source, /function setActor/);
+  assert.match(source, /function actorFrame/);
+  assert.match(source, /assetManifest/);
 });

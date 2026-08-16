@@ -8,8 +8,11 @@
 
   <section id="boss-card" class="boss-card" hidden>
     <div class="boss-artwork-frame" aria-hidden="true">
-      <img id="boss-artwork" class="boss-artwork" alt="" />
-      <span class="boss-artwork-fallback">🎃</span>
+      <span id="boss-actor" class="sprite-actor boss-artwork" data-actor-state="loading">
+        <img class="sprite-actor__image" alt="" />
+        <i class="sprite-actor__sheet"></i>
+        <b class="sprite-actor__fallback">🎃</b>
+      </span>
     </div>
     <div class="boss-info">
       <small>GLOBALER BOSS</small>
@@ -23,7 +26,23 @@
     </div>
   </section>
 
-  <section id="minion-card" class="minion-card" hidden></section>
+  <section id="minion-card" class="minion-card" data-minion="none" hidden>
+    <div class="encounter-aura" aria-hidden="true"></div>
+    <span id="minion-actor" class="sprite-actor minion-artwork" data-actor-state="loading" aria-hidden="true">
+      <img class="sprite-actor__image" alt="" />
+      <i class="sprite-actor__sheet"></i>
+      <b class="sprite-actor__fallback">👻</b>
+    </span>
+    <div class="minion-copy">
+      <small id="minion-kicker"></small>
+      <h2 id="minion-title"></h2>
+      <div id="minion-visual" class="minion-visual" hidden></div>
+      <p id="minion-instruction" class="command" hidden></p>
+      <p id="minion-progress" class="progress" hidden></p>
+      <p id="minion-result" class="minion-result" hidden></p>
+    </div>
+    <time id="minion-timer" hidden>00:00</time>
+  </section>
 
   <aside id="debug-panel" class="debug-panel" hidden>
     <strong>STREAM ELEMENTS LIVE-DIAGNOSE</strong>
@@ -36,11 +55,18 @@
       <div><dt>Boss</dt><dd id="debug-boss">not loaded</dd></div>
       <div><dt>Minion</dt><dd id="debug-minion">none</dd></div>
       <div><dt>Last Sync</dt><dd id="debug-sync">never</dd></div>
+      <div><dt>Widget Build</dt><dd id="debug-build">–</dd></div>
+      <div><dt>Assets</dt><dd id="debug-assets">loading</dd></div>
       <div><dt>Last Action</dt><dd id="debug-action">none</dd></div>
     </dl>
   </aside>
 
   <div id="curse-layer" class="curse-layer" hidden aria-hidden="true">
     <div class="curse-vignette"></div><i></i><i></i><i></i>
+    <span id="curse-actor" class="sprite-actor curse-actor" data-actor-state="empty">
+      <img class="sprite-actor__image" alt="" />
+      <i class="sprite-actor__sheet"></i>
+      <b class="sprite-actor__fallback"></b>
+    </span>
   </div>
 </main>

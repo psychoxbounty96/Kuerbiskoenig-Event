@@ -7,6 +7,8 @@ import { stateProvider, useAdminSession, useEventData } from "../lib/state-provi
 import type { ActionResult, StreamerInput, StreamerState } from "../lib/types";
 import { isOpenMinionStatus } from "../lib/minion-engine";
 
+const ASSET_MANIFEST_URL = `${import.meta.env.BASE_URL}assets/widget-assets.json`;
+
 function readNumber(value: FormDataEntryValue | null) {
   return Number(String(value ?? "").replace(/\./g, "").replace(",", "."));
 }
@@ -44,6 +46,10 @@ function StreamerEditor({
       avatarUrl: String(form.get("avatarUrl")) || null,
       enabled: streamer.enabled,
       isTestAccount: form.get("isTestAccount") === "on",
+      trackingEnabled: form.get("trackingEnabled") === "on",
+      gameplayEnabled: form.get("gameplayEnabled") === "on",
+      publicVisible: form.get("publicVisible") === "on",
+      includeInCalibration: form.get("includeInCalibration") === "on",
     }, streamer.id).then((result) => {
       if (result.ok) setEditing(false);
       return result;
@@ -59,6 +65,10 @@ function StreamerEditor({
         <input name="twitchUrl" defaultValue={streamer.twitchUrl} aria-label="Twitch URL" />
         <input name="avatarUrl" defaultValue={streamer.avatarUrl ?? ""} aria-label="Avatar URL" />
         <label className="check-row"><input name="isTestAccount" type="checkbox" defaultChecked={Boolean(streamer.isTestAccount)} /> Testkonto (nicht öffentlich auswerten)</label>
+        <label className="check-row"><input name="trackingEnabled" type="checkbox" defaultChecked={streamer.trackingEnabled} /> Twitch-Tracking (Live, Viewer, Sessions)</label>
+        <label className="check-row"><input name="gameplayEnabled" type="checkbox" defaultChecked={streamer.gameplayEnabled} /> Event-Gameplay und Widget erlauben</label>
+        <label className="check-row"><input name="publicVisible" type="checkbox" defaultChecked={streamer.publicVisible} /> Öffentlich anzeigen</label>
+        <label className="check-row"><input name="includeInCalibration" type="checkbox" defaultChecked={streamer.includeInCalibration} /> In Kalibrierung einbeziehen</label>
         <div className="inline-actions">
           <button type="submit" disabled={disabled}>Speichern</button>
           <button type="button" onClick={() => setEditing(false)}>Abbrechen</button>
@@ -71,7 +81,8 @@ function StreamerEditor({
     <article className={`streamer-row${streamer.enabled ? "" : " is-disabled"}`}>
       <div>
         <strong>{streamer.displayName}</strong>
-        <small>{streamer.communityName} · @{streamer.twitchLogin} · automatische Widget-Freigabe{streamer.isTestAccount ? " · TESTKONTO" : ""}</small>
+        <small>{streamer.communityName} · @{streamer.twitchLogin}{streamer.isTestAccount ? " · TESTKONTO" : ""}</small>
+        <small>Tracking {streamer.trackingEnabled ? "AN" : "AUS"} · Gameplay {streamer.gameplayEnabled ? "AN" : "AUS"} · Öffentlich {streamer.publicVisible ? "JA" : "NEIN"} · Kalibrierung {streamer.includeInCalibration ? "JA" : "NEIN"}</small>
       </div>
       <div className="inline-actions">
         <button type="button" disabled={disabled} onClick={() => setEditing(true)}>Bearbeiten</button>
@@ -92,7 +103,8 @@ export default function AdminPage() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<ActionResult | null>(null);
   const [now, setNow] = useState(0);
-  const enabledStreamers = useMemo(() => state.streamers.filter((streamer) => streamer.enabled), [state.streamers]);
+  const [assetHealth, setAssetHealth] = useState({ status: "loading", version: "–", loaded: 0, total: 0, detail: "Manifest wird geprüft …" });
+  const enabledStreamers = useMemo(() => state.streamers.filter((streamer) => streamer.enabled && streamer.gameplayEnabled), [state.streamers]);
   const streamerId = selectedStreamer || enabledStreamers[0]?.id || "";
   const canMutate = session.authenticated && session.role !== "viewer" && !busy;
   const debugMinion = state.minions.find((minion) => minion.streamerId === streamerId && isOpenMinionStatus(minion.status));
@@ -100,6 +112,35 @@ export default function AdminPage() {
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function inspectAssets() {
+      try {
+        const response = await fetch(ASSET_MANIFEST_URL, { cache: "no-cache", signal: controller.signal });
+        if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
+        const manifest = await response.json() as { version?: number; boss?: { url?: string }; minions?: Record<string, { url?: string }> };
+        const urls = [manifest.boss?.url, ...Object.values(manifest.minions ?? {}).map((asset) => asset.url)]
+          .filter((url): url is string => Boolean(url));
+        const checks = await Promise.all(urls.map(async (url) => {
+          try {
+            const asset = await fetch(url, { method: "HEAD", cache: "no-cache", signal: controller.signal });
+            return asset.ok;
+          } catch { return false; }
+        }));
+        const loaded = checks.filter(Boolean).length;
+        setAssetHealth({
+          status: loaded === urls.length && urls.length === 8 ? "healthy" : "warning",
+          version: String(manifest.version ?? "–"), loaded, total: urls.length,
+          detail: loaded === urls.length ? "Boss und sieben Minion-Artworks erreichbar." : `${urls.length - loaded} Asset(s) nicht erreichbar. Widget-Fallback bleibt aktiv.`,
+        });
+      } catch (error) {
+        if (!controller.signal.aborted) setAssetHealth({ status: "error", version: "–", loaded: 0, total: 0, detail: error instanceof Error ? error.message : "Assetprüfung fehlgeschlagen" });
+      }
+    }
+    void inspectAssets();
+    return () => controller.abort();
   }, []);
 
   async function run(operation: Promise<ActionResult>) {
@@ -136,6 +177,15 @@ export default function AdminPage() {
       passiveDamageMultiplier: Number(form.get("passiveMultiplier")),
       activeDamageMultiplier: Number(form.get("activeMultiplier")),
       passiveTickSeconds: Number(form.get("passiveTickSeconds")),
+      twitchTrackingEnabled: form.get("twitchTrackingEnabled") === "on",
+      passiveDamageEnabled: form.get("passiveDamageEnabled") === "on",
+      passiveDamageMode: String(form.get("passiveDamageMode")) as typeof state.settings.passiveDamageMode,
+      passiveBaseDamage: Number(form.get("passiveBaseDamage")),
+      passiveCurveExponent: Number(form.get("passiveCurveExponent")),
+      passiveSoftCap: Number(form.get("passiveSoftCap")),
+      passiveMinDamage: Number(form.get("passiveMinDamage")),
+      passiveMaxDamage: Number(form.get("passiveMaxDamage")),
+      passiveUnderdogFactor: Number(form.get("passiveUnderdogFactor")),
     }));
   }
 
@@ -151,6 +201,10 @@ export default function AdminPage() {
       avatarUrl: null,
       enabled: true,
       isTestAccount: form.get("isTestAccount") === "on",
+      trackingEnabled: form.get("trackingEnabled") === "on",
+      gameplayEnabled: form.get("gameplayEnabled") === "on",
+      publicVisible: form.get("publicVisible") === "on",
+      includeInCalibration: form.get("includeInCalibration") === "on",
     };
     void run(stateProvider.adminUpsertStreamer(input).then((result) => {
       if (result.ok) element.reset();
@@ -324,15 +378,25 @@ export default function AdminPage() {
           <div className="toggle-grid">
             <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminUpdateSettings({ damageEnabled: !state.settings.damageEnabled }))}>Damage: {state.settings.damageEnabled ? "AN" : "AUS"}</button>
             <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminUpdateSettings({ minionsEnabled: !state.settings.minionsEnabled }))}>Minions: {state.settings.minionsEnabled ? "AN" : "AUS"}</button>
+            <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminUpdateSettings({ twitchTrackingEnabled: !state.settings.twitchTrackingEnabled }))}>Twitch-Tracking: {state.settings.twitchTrackingEnabled ? "AN" : "AUS"}</button>
           </div>
           <form className="settings-form" onSubmit={submitSettings}>
             <label>Global<input name="globalMultiplier" type="number" min="0" max="100" step="0.01" defaultValue={state.settings.globalDamageMultiplier} /></label>
             <label>Aktiv<input name="activeMultiplier" type="number" min="0" max="100" step="0.01" defaultValue={state.settings.activeDamageMultiplier} /></label>
             <label>Passiv<input name="passiveMultiplier" type="number" min="0" max="100" step="0.01" defaultValue={state.settings.passiveDamageMultiplier} /></label>
             <label>Tick (Sek.)<input name="passiveTickSeconds" type="number" min="10" max="86400" defaultValue={state.settings.passiveTickSeconds} /></label>
+            <label>Passiv-Modus<select name="passiveDamageMode" defaultValue={state.settings.passiveDamageMode}><option value="disabled">Deaktiviert</option><option value="dry_run">Dry Run</option><option value="test">Testevent</option><option value="active">Produktion aktiv</option></select></label>
+            <label>Basis<input name="passiveBaseDamage" type="number" min="0" max="1000000" step="0.01" defaultValue={state.settings.passiveBaseDamage} /></label>
+            <label>Kurve<input name="passiveCurveExponent" type="number" min="0.1" max="2" step="0.01" defaultValue={state.settings.passiveCurveExponent} /></label>
+            <label>Soft Cap<input name="passiveSoftCap" type="number" min="1" max="1000000" step="1" defaultValue={state.settings.passiveSoftCap} /></label>
+            <label>Min. Damage<input name="passiveMinDamage" type="number" min="0" step="1" defaultValue={state.settings.passiveMinDamage} /></label>
+            <label>Max. Damage<input name="passiveMaxDamage" type="number" min="0" step="1" defaultValue={state.settings.passiveMaxDamage} /></label>
+            <label>Underdog<input name="passiveUnderdogFactor" type="number" min="0" max="5" step="0.01" defaultValue={state.settings.passiveUnderdogFactor} /></label>
+            <label className="check-row"><input name="twitchTrackingEnabled" type="checkbox" defaultChecked={state.settings.twitchTrackingEnabled} /> Twitch-Tracking global</label>
+            <label className="check-row"><input name="passiveDamageEnabled" type="checkbox" defaultChecked={state.settings.passiveDamageEnabled} /> Passive Engine freigeben</label>
             <button type="submit" disabled={!canMutate}>Einstellungen speichern</button>
           </form>
-          <p className="admin-hint">Balancingwerte sind vorläufig. v0.4-Minions verursachen nur bei serverseitigem Erfolg Damage; Twitch-Samples erzeugen keinen passiven Schaden.</p>
+          <p className="admin-hint">Balancingwerte sind vorläufig. „Dry Run“ schreibt ausschließlich Vorschauen. „Testevent“ kann nur Testkonten in einem Event mit Status testing beschädigen. Produktion bleibt bis zur bewussten Freigabe deaktiviert.</p>
         </section>
 
         <section className="admin-panel admin-panel--full minion-debugger">
@@ -382,10 +446,10 @@ export default function AdminPage() {
             <div><small>TWITCH AWARENESS v0.3</small><h2>Twitch Status</h2></div>
             <span className={`twitch-health twitch-health--${state.twitch.health.status}`}>{state.twitch.health.status}</span>
           </div>
-          <p className="admin-hint">{state.twitch.health.reason} Viewer-Samples und Raids sind reine Beobachtungsdaten.</p>
+          <p className="admin-hint">{state.twitch.health.reason} Viewer-Samples sind die messbare Grundlage für Kalibrierung; Raids verursachen weiterhin keinen direkten Schaden.</p>
           <div className="twitch-global-actions">
             <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminResolveTwitchIds())}>Resolve All IDs</button>
-            <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminSyncTwitchStreams())}>Sync All Streams</button>
+            <button type="button" disabled={!canMutate || !state.settings.twitchTrackingEnabled} onClick={() => void run(stateProvider.adminSyncTwitchStreams())}>Sync All Streams</button>
             <button type="button" disabled={!canMutate || session.role === "operator"} onClick={() => void run(stateProvider.adminSyncEventSubSubscriptions())}>Sync EventSub Subscriptions</button>
           </div>
           <div className="twitch-health-grid">
@@ -417,7 +481,7 @@ export default function AdminPage() {
                 ) : <p className="admin-hint">Noch keine Stream-Session vorhanden.</p>}
                 <div className="inline-actions">
                   <button type="button" disabled={!canMutate} onClick={() => void run(stateProvider.adminResolveTwitchIds(streamer.id))}>Resolve Twitch ID</button>
-                  <button type="button" disabled={!canMutate || !streamer.enabled || !streamer.twitchUserId} onClick={() => void run(stateProvider.adminSyncTwitchStreams(streamer.id))}>Sync Now</button>
+                  <button type="button" disabled={!canMutate || !streamer.enabled || !streamer.trackingEnabled || !streamer.twitchUserId} onClick={() => void run(stateProvider.adminSyncTwitchStreams(streamer.id))}>Sync Now</button>
                 </div>
               </article>
             ))}
@@ -441,6 +505,41 @@ export default function AdminPage() {
           )}
         </section>
 
+        <section className="admin-panel admin-panel--full" id="passive-damage">
+          <div className="panel-heading"><div><small>PASSIVE DAMAGE · KALIBRIERUNG</small><h2>Viewer-Ticks & Betriebsstatus</h2></div><span>Config v{state.settings.passiveConfigurationVersion}</span></div>
+          <div className="twitch-global-actions">
+            <button type="button" disabled={!canMutate || !state.settings.passiveDamageEnabled || state.settings.passiveDamageMode === "disabled"} onClick={() => void run(stateProvider.adminRunPassiveTick())}>Passiven Tick jetzt ausführen</button>
+          </div>
+          <div className="twitch-health-grid">
+            <article><small>Modus</small><strong>{state.settings.passiveDamageMode}</strong><span>{state.settings.passiveDamageEnabled ? "Engine freigegeben" : "Kill-Switch aus"}</span></article>
+            <article><small>Letzter Tick</small><strong>{state.passiveDamage.status}</strong><span>{formatDateTime(state.passiveDamage.processedAt)}</span></article>
+            <article><small>Viewer / Samples</small><strong>{state.passiveDamage.viewerEstimate ?? "–"} / {state.passiveDamage.sampleCount}</strong><span>{state.passiveDamage.skipReason ?? "kein Fehler"}</span></article>
+            <article><small>Vorschau / angewandt</small><strong>{formatNumber(state.passiveDamage.configuredDamage)} / {formatNumber(state.passiveDamage.appliedDamage)}</strong><span>serverseitig berechnet</span></article>
+          </div>
+          <div className="twitch-health-grid">
+            <article><small>Kalibrierung</small><strong>{state.calibration.includedStreamers} Streamer · {state.calibration.totalSamples} Samples</strong><span>Dry Run/h {formatNumber(state.calibration.projectedPassiveDamagePerHour)} · Max. gleichzeitig {state.calibration.maxConcurrentStreamers}</span></article>
+            <article><small>Minion-Bilanz</small><strong>{state.calibration.minionsDefeated} / {state.calibration.minionsSpawned} besiegt</strong><span>{state.calibration.minionsFailed} fehlgeschlagen</span></article>
+            {state.jobs.map((job) => <article key={job.key}><small>{job.key}</small><strong>{job.status}</strong><span>Erfolg: {formatDateTime(job.lastSuccessAt)}{job.lastError ? ` · ${job.lastError}` : ""}</span></article>)}
+          </div>
+          <div className="twitch-streamer-list" role="list" aria-label="Kalibrierungsdaten pro Streamer">
+            {state.calibration.streamers.map((entry) => <article key={entry.streamerId} className={!entry.included || entry.isTestAccount ? "is-disabled" : ""} role="listitem">
+              <div className="twitch-streamer-heading"><div><strong>{entry.displayName}</strong><small>{entry.isTestAccount ? "Testkonto" : entry.included ? "Kalibrierung aktiv" : "Kalibrierung ausgeschlossen"}</small></div><em>{entry.sampleCount} Samples</em></div>
+              <p className="twitch-session-summary">Ø {entry.averageViewers.toLocaleString("de-DE")} · Median {entry.medianViewers.toLocaleString("de-DE")} · Peak {formatNumber(entry.peakViewers)} · Streams {entry.streams} ({entry.streamsPerWeek.toLocaleString("de-DE")} / Woche) · Live {formatDuration(entry.totalLiveSeconds)} · Dry Run {formatNumber(entry.dryRunDamage)} ({formatNumber(entry.passiveDamagePerHour)} / h) · Passiv {formatNumber(entry.appliedPassiveDamage)} · Minions {entry.minionsDefeated}/{entry.minionsSpawned}</p>
+            </article>)}
+          </div>
+          <p className="admin-hint">Nur explizit eingeschlossene echte Twitch-Samples fließen in die Kalibrierung. Testkonten und manual_test-Samples bleiben ausgeschlossen.</p>
+        </section>
+
+        <section className="admin-panel admin-panel--full" id="widget-assets">
+          <div className="panel-heading"><div><small>ASSETS & WIDGET</small><h2>Live-Asset-Diagnose</h2></div><span className={`twitch-health twitch-health--${assetHealth.status}`}>{assetHealth.status}</span></div>
+          <div className="twitch-health-grid">
+            <article><small>Widget Build</small><strong>v0.5.0</strong><span>Standalone HTML / CSS / JS / Fields</span></article>
+            <article><small>Asset-Manifest</small><strong>v{assetHealth.version}</strong><span>{ASSET_MANIFEST_URL}</span></article>
+            <article><small>HTTPS Assets</small><strong>{assetHealth.loaded} / {assetHealth.total}</strong><span>{assetHealth.detail}</span></article>
+          </div>
+          <p className="admin-hint">Die Runtime lädt ausschließlich stabile HTTPS-URLs. Bei einem Ladefehler bleibt das Overlay aktiv und fällt auf statisches Artwork oder Symbol-UI zurück.</p>
+        </section>
+
         <section className="admin-panel admin-panel--full">
           <div className="panel-heading"><div><small>STREAMER-VERWALTUNG</small><h2>Teilnehmende Kanäle</h2></div><span>{state.streamers.length} Einträge</span></div>
           <div className="streamer-list">
@@ -453,6 +552,10 @@ export default function AdminPage() {
             <input name="twitchLogin" placeholder="Twitch Login" required />
             <input name="twitchUrl" type="url" placeholder="https://twitch.tv/..." />
             <label className="check-row"><input name="isTestAccount" type="checkbox" /> Als Testkonto markieren</label>
+            <label className="check-row"><input name="trackingEnabled" type="checkbox" defaultChecked /> Twitch-Tracking aktivieren</label>
+            <label className="check-row"><input name="gameplayEnabled" type="checkbox" defaultChecked /> Gameplay/Widget aktivieren</label>
+            <label className="check-row"><input name="publicVisible" type="checkbox" defaultChecked /> Öffentlich anzeigen</label>
+            <label className="check-row"><input name="includeInCalibration" type="checkbox" defaultChecked /> In Kalibrierung aufnehmen</label>
             <button type="submit" disabled={!canMutate}>Hinzufügen</button>
           </form>
         </section>

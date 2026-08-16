@@ -145,6 +145,15 @@ test("disabled participant is rejected without Twitch User ID dependency", () =>
   assert.equal(resolution.streamerId, null);
 });
 
+test("tracking-only participant cannot resolve as a gameplay widget", () => {
+  const resolution = resolveParticipantIdentity({
+    ...eventIdentity,
+    channelUsername: "knoobbi",
+    streamers: [{ ...eventIdentity.streamers[0], gameplayEnabled: false }],
+  });
+  assert.equal(resolution.status, "disabled");
+});
+
 test("duplicate normalized login fails closed instead of selecting randomly", () => {
   const resolution = resolveParticipantIdentity({
     ...eventIdentity,

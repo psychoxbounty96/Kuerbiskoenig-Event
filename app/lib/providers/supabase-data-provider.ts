@@ -105,6 +105,10 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
     avatarUrl: asString(streamer.avatar_url) || null,
     enabled: asBoolean(streamer.enabled, true),
     isTestAccount: asBoolean(streamer.is_test_account),
+    trackingEnabled: asBoolean(streamer.tracking_enabled, true),
+    gameplayEnabled: asBoolean(streamer.gameplay_enabled, true),
+    publicVisible: asBoolean(streamer.public_visible, true),
+    includeInCalibration: asBoolean(streamer.include_in_calibration, true),
     damage: asNumber(streamer.damage),
     minionsDefeated: asNumber(streamer.minions_defeated),
     live: asBoolean(streamer.is_live),
@@ -200,6 +204,16 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
       passiveDamageMultiplier: asNumber(settings.passive_damage_multiplier, 1),
       activeDamageMultiplier: asNumber(settings.active_damage_multiplier, 1),
       passiveTickSeconds: asNumber(settings.passive_tick_seconds, 120),
+      twitchTrackingEnabled: asBoolean(settings.twitch_tracking_enabled, true),
+      passiveDamageEnabled: asBoolean(settings.passive_damage_enabled),
+      passiveDamageMode: asString(settings.passive_damage_mode, "disabled") as EventState["settings"]["passiveDamageMode"],
+      passiveBaseDamage: asNumber(settings.passive_base_damage, INITIAL_EVENT_STATE.settings.passiveBaseDamage),
+      passiveCurveExponent: asNumber(settings.passive_curve_exponent, INITIAL_EVENT_STATE.settings.passiveCurveExponent),
+      passiveSoftCap: asNumber(settings.passive_soft_cap, INITIAL_EVENT_STATE.settings.passiveSoftCap),
+      passiveMinDamage: asNumber(settings.passive_min_damage, INITIAL_EVENT_STATE.settings.passiveMinDamage),
+      passiveMaxDamage: asNumber(settings.passive_max_damage, INITIAL_EVENT_STATE.settings.passiveMaxDamage),
+      passiveUnderdogFactor: asNumber(settings.passive_underdog_factor, INITIAL_EVENT_STATE.settings.passiveUnderdogFactor),
+      passiveConfigurationVersion: asNumber(settings.passive_configuration_version, 1),
     },
     stats: {
       globalDamage: asNumber(stats.total_damage),
@@ -251,6 +265,74 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
       })),
       passiveDamagePreview: null,
     } : clone(INITIAL_EVENT_STATE.twitch),
+    passiveDamage: (() => {
+      const passive = asRecord(payload.passive_damage);
+      const rawStatus = asString(passive.status, "none");
+      return {
+        id: asString(passive.id) || null,
+        streamerId: asString(passive.streamer_id) || null,
+        bucketStartedAt: asString(passive.bucket_started_at) || null,
+        mode: asString(passive.mode, "disabled") as EventState["passiveDamage"]["mode"],
+        viewerEstimate: passive.viewer_estimate === null || passive.viewer_estimate === undefined ? null : Math.max(0, asNumber(passive.viewer_estimate)),
+        sampleCount: Math.max(0, asNumber(passive.viewer_sample_count)),
+        configuredDamage: Math.max(0, asNumber(passive.configured_damage)),
+        appliedDamage: Math.max(0, asNumber(passive.applied_damage)),
+        status: (["pending", "preview", "applied", "skipped"].includes(rawStatus) ? rawStatus : "none") as EventState["passiveDamage"]["status"],
+        skipReason: asString(passive.skip_reason) || null,
+        configurationVersion: Math.max(0, asNumber(passive.configuration_version)),
+        processedAt: asString(passive.processed_at) || null,
+      };
+    })(),
+    jobs: asArray(payload.jobs).map((job) => ({
+      key: asString(job.job_key) as EventState["jobs"][number]["key"],
+      status: asString(job.status, "idle") as EventState["jobs"][number]["status"],
+      lastStartedAt: asString(job.last_started_at) || null,
+      lastSuccessAt: asString(job.last_success_at) || null,
+      lastErrorAt: asString(job.last_error_at) || null,
+      lastError: asString(job.last_error) || null,
+      nextExpectedAt: asString(job.next_expected_at) || null,
+    })),
+    calibration: (() => {
+      const calibration = asRecord(payload.calibration);
+      return {
+        streamers: asArray(calibration.streamers).map((streamer) => ({
+          streamerId: asString(streamer.streamer_id),
+          displayName: asString(streamer.display_name),
+          included: asBoolean(streamer.included),
+          isTestAccount: asBoolean(streamer.is_test_account),
+          sampleCount: Math.max(0, asNumber(streamer.sample_count)),
+          averageViewers: Math.max(0, asNumber(streamer.average_viewers)),
+          medianViewers: Math.max(0, asNumber(streamer.median_viewers)),
+          peakViewers: Math.max(0, asNumber(streamer.peak_viewers)),
+          streams: Math.max(0, asNumber(streamer.streams)),
+          streamsPerWeek: Math.max(0, asNumber(streamer.streams_per_week)),
+          averageStreamSeconds: Math.max(0, asNumber(streamer.average_stream_seconds)),
+          totalLiveSeconds: Math.max(0, asNumber(streamer.total_live_seconds)),
+          dryRunDamage: Math.max(0, asNumber(streamer.dry_run_damage)),
+          passiveDamagePerHour: Math.max(0, asNumber(streamer.passive_damage_per_hour)),
+          appliedPassiveDamage: Math.max(0, asNumber(streamer.applied_passive_damage)),
+          minionsSpawned: Math.max(0, asNumber(streamer.minions_spawned)),
+          minionsDefeated: Math.max(0, asNumber(streamer.minions_defeated)),
+          minionsFailed: Math.max(0, asNumber(streamer.minions_failed)),
+          minionSuccessRates: Object.fromEntries(Object.entries(asRecord(streamer.minion_success_rates)).map(([key, value]) => {
+            const rate = asRecord(value);
+            return [key, {
+              spawned: Math.max(0, asNumber(rate.spawned)),
+              defeated: Math.max(0, asNumber(rate.defeated)),
+              successRate: Math.max(0, asNumber(rate.success_rate)),
+            }];
+          })),
+        })),
+        includedStreamers: Math.max(0, asNumber(calibration.included_streamers)),
+        totalSamples: Math.max(0, asNumber(calibration.total_samples)),
+        projectedPassiveDamage: Math.max(0, asNumber(calibration.projected_passive_damage)),
+        projectedPassiveDamagePerHour: Math.max(0, asNumber(calibration.projected_passive_damage_per_hour)),
+        maxConcurrentStreamers: Math.max(0, asNumber(calibration.max_concurrent_streamers)),
+        minionsSpawned: Math.max(0, asNumber(calibration.minions_spawned)),
+        minionsDefeated: Math.max(0, asNumber(calibration.minions_defeated)),
+        minionsFailed: Math.max(0, asNumber(calibration.minions_failed)),
+      };
+    })(),
     log: asArray(payload.log).map((entry) => ({
       id: asString(entry.id),
       timestamp: asString(entry.timestamp),
@@ -560,6 +642,12 @@ export class SupabaseDataProvider implements DataProvider {
 
   async adminUpdateSettings(patch: Partial<EventSettingsState>) {
     const result = await this.executeAction("update_settings", { settings: patch });
+    if (result.ok) await this.refresh();
+    return result;
+  }
+
+  async adminRunPassiveTick() {
+    const result = await this.executeAction("run_passive_tick", {});
     if (result.ok) await this.refresh();
     return result;
   }

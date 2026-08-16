@@ -41,17 +41,14 @@ jobs:
       - name: Validate public configuration
         run: npm run check:pages-env
 
-      - name: Build standalone StreamElements packages
-        run: npm run build:widget
+      - name: Test, lint and build all runtime artifacts
+        run: npm test
 
       - name: Upload StreamElements packages
         uses: actions/upload-artifact@v4
         with:
           name: streamelements-widget
           path: dist/streamelements
-
-      - name: Build static website
-        run: npm run build
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

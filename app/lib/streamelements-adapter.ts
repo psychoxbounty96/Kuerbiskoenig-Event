@@ -57,7 +57,10 @@ export function resolveParticipantIdentity(options: {
   currentEventId: string;
   currentEventSlug: string;
   currentEventStatus: EventStatus;
-  streamers: Pick<StreamerState, "id" | "slug" | "displayName" | "twitchLogin" | "enabled" | "isTestAccount">[];
+  streamers: Array<
+    Pick<StreamerState, "id" | "slug" | "displayName" | "twitchLogin" | "enabled" | "isTestAccount">
+    & Partial<Pick<StreamerState, "gameplayEnabled">>
+  >;
 }): OverlayIdentityResolution {
   const channelUsername = normalizeTwitchLogin(options.channelUsername);
   const eventSlug = normalizeEventSlug(options.eventSlug);
@@ -76,7 +79,7 @@ export function resolveParticipantIdentity(options: {
     return emptyResolution("not_registered", channelUsername, eventSlug, options.currentEventId, options.currentEventStatus);
   }
   const streamer = matches[0];
-  if (!streamer.enabled) {
+  if (!streamer.enabled || streamer.gameplayEnabled === false) {
     return emptyResolution("disabled", channelUsername, eventSlug, options.currentEventId, options.currentEventStatus);
   }
   return {

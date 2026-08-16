@@ -316,23 +316,51 @@ input:focus-visible {
 
 .boss-avatar {
   --avatar-scale: 1;
-  width: 220px;
-  height: 300px;
+  width: 360px;
+  height: 390px;
   position: relative;
-  filter: drop-shadow(0 24px 22px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 24px 18px rgba(0, 0, 0, 0.62));
   transform: scale(var(--avatar-scale));
   transform-origin: center bottom;
 }
 
 .boss-avatar--compact {
-  --avatar-scale: 0.56;
-  width: 128px;
-  height: 172px;
-  margin: -32px -12px -18px -23px;
+  --avatar-scale: 0.52;
+  width: 230px;
+  height: 245px;
+  margin: -42px -48px -32px -58px;
 }
 
 .boss-avatar.is-hit {
   animation: avatar-hit 480ms ease-out;
+}
+
+.boss-avatar__image {
+  display: block;
+  height: 100%;
+  image-rendering: auto;
+  object-fit: contain;
+  object-position: center bottom;
+  position: relative;
+  width: 100%;
+  z-index: 2;
+}
+
+.boss-avatar__aura {
+  background: radial-gradient(circle, color-mix(in srgb, var(--phase-color, var(--orange)) 34%, transparent), transparent 67%);
+  filter: blur(10px);
+  inset: 8% 3% 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.boss-avatar__fallback {
+  display: grid;
+  font-size: 110px;
+  inset: 0;
+  place-items: center;
+  position: absolute;
+  z-index: 0;
 }
 
 .crown {
@@ -1377,6 +1405,12 @@ body:has(.overlay-page) {
 .settings-form label {
   display: grid;
   gap: 6px;
+}
+
+.settings-form label.check-row {
+  align-items: center;
+  display: flex;
+  min-height: 40px;
 }
 
 .settings-form button { grid-column: 1 / -1; }

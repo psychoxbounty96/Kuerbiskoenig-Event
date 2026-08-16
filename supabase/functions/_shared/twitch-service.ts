@@ -18,6 +18,7 @@ type StreamerRow = {
   twitch_login: string;
   twitch_user_id: string | null;
   enabled: boolean;
+  tracking_enabled: boolean;
 };
 
 function safeError(error: unknown) {
@@ -69,8 +70,9 @@ export async function resolveTwitchStreamerIds(
   streamerId?: string,
 ) {
   let query = service.from("streamers")
-    .select("id,event_id,display_name,twitch_login,twitch_user_id,enabled")
-    .eq("event_id", eventId);
+    .select("id,event_id,display_name,twitch_login,twitch_user_id,enabled,tracking_enabled")
+    .eq("event_id", eventId)
+    .eq("tracking_enabled", true);
   if (streamerId) query = query.eq("id", streamerId);
   const { data, error } = await query;
   if (error) throw error;
@@ -130,9 +132,10 @@ export async function syncTwitchStreams(
   streamerId?: string,
 ) {
   let query = service.from("streamers")
-    .select("id,event_id,display_name,twitch_login,twitch_user_id,enabled")
+    .select("id,event_id,display_name,twitch_login,twitch_user_id,enabled,tracking_enabled")
     .eq("event_id", eventId)
     .eq("enabled", true)
+    .eq("tracking_enabled", true)
     .not("twitch_user_id", "is", null);
   if (streamerId) query = query.eq("id", streamerId);
   const { data, error } = await query;
@@ -238,17 +241,18 @@ export async function syncEventSubSubscriptions(
   if (secret.length < 10 || secret.length > 100) throw new Error("TWITCH_EVENTSUB_SECRET muss 10 bis 100 Zeichen lang sein.");
 
   const { data: streamerData, error: streamerError } = await service.from("streamers")
-    .select("id,event_id,twitch_user_id,enabled,events!inner(status)")
+    .select("id,event_id,twitch_user_id,enabled,tracking_enabled,events!inner(status)")
     .not("twitch_user_id", "is", null);
   if (streamerError) throw streamerError;
   const allStreamers = (streamerData ?? []) as unknown as Array<{
     event_id: string;
     twitch_user_id: string;
     enabled: boolean;
+    tracking_enabled: boolean;
     events: { status: string };
   }>;
   const activeIds = allStreamers
-    .filter((streamer) => streamer.enabled && ["testing", "active", "paused"].includes(streamer.events.status))
+    .filter((streamer) => streamer.enabled && streamer.tracking_enabled && ["testing", "active", "paused"].includes(streamer.events.status))
     .map((streamer) => streamer.twitch_user_id);
   const desired = desiredEventSubSubscriptions(activeIds);
   const desiredKeys = new Set(desired.map((item) => eventSubKey(item.type, item.condition)));

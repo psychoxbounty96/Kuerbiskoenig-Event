@@ -49,6 +49,7 @@ const CURSE_ACTIONS: Record<string, string> = {
 
 const ALLOWED_ACTIONS = new Set([
   "reload_state", "tick", "test_boss_hit", "test_boss_big_hit", "reset_test_boss",
+  "test_passive_tick",
   "set_phase_1", "set_phase_2", "set_phase_3", "set_phase_4",
   "force_minion_success", "force_minion_failure", "cancel_minion", "expire_minion",
   "simulate_eligible_raid", "create_test_viewer_sample",
@@ -117,12 +118,12 @@ Deno.serve(async (request) => {
     if (!event || event.status !== "testing") return json({ ok: false, error: "test_event_required" }, 403);
 
     const { data: streamer, error: streamerError } = await service.from("streamers")
-      .select("id,event_id,twitch_login,twitch_user_id,enabled,is_test_account")
+      .select("id,event_id,twitch_login,twitch_user_id,enabled,is_test_account,tracking_enabled,gameplay_enabled")
       .eq("event_id", event.id)
       .eq("twitch_login", channelUsername)
       .maybeSingle();
     if (streamerError) throw streamerError;
-    if (!streamer?.enabled || !streamer.is_test_account) {
+    if (!streamer?.enabled || !streamer.gameplay_enabled || !streamer.is_test_account) {
       return json({ ok: false, error: "test_account_required" }, 403);
     }
 
@@ -152,8 +153,31 @@ Deno.serve(async (request) => {
     if (action === "reload_state") {
       result = { reload: true };
     } else if (action === "tick") {
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "minion_tick", p_status: "running",
+        p_next_expected_at: null, p_metadata: { source: "widget_test" },
+      });
       const { data, error } = await service.rpc("process_minion_tick", { p_event_id: event.id });
       if (error) throw error;
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "minion_tick", p_status: "healthy",
+        p_next_expected_at: null, p_metadata: { source: "widget_test" },
+      });
+      result = data;
+    } else if (action === "test_passive_tick") {
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "passive_damage_tick", p_status: "running",
+        p_next_expected_at: null, p_metadata: { source: "widget_test" },
+      });
+      const { data, error } = await service.rpc("process_passive_damage_tick", {
+        p_event_id: event.id,
+        p_now: new Date().toISOString(),
+      });
+      if (error) throw error;
+      await service.rpc("mark_event_job_status", {
+        p_event_id: event.id, p_job_key: "passive_damage_tick", p_status: "healthy",
+        p_next_expected_at: null, p_metadata: { source: "widget_test" },
+      });
       result = data;
     } else if (action === "test_boss_hit" || action === "test_boss_big_hit") {
       const amount = action === "test_boss_hit" ? 1_000 : 25_000;
@@ -233,7 +257,7 @@ Deno.serve(async (request) => {
     } else if (action === "simulate_eligible_raid") {
       const { data: senders, error: senderError } = await service.from("streamers")
         .select("id,twitch_user_id")
-        .eq("event_id", event.id).eq("enabled", true).eq("is_test_account", true)
+        .eq("event_id", event.id).eq("enabled", true).eq("gameplay_enabled", true).eq("is_test_account", true)
         .neq("id", streamer.id).limit(1);
       if (senderError) throw senderError;
       const sender = senders?.[0];
@@ -256,17 +280,17 @@ Deno.serve(async (request) => {
       result = data;
     } else if (action === "create_test_viewer_sample") {
       const now = new Date().toISOString();
-      const { data, error } = await service.from("viewer_samples").insert({
-        event_id: event.id,
-        streamer_id: streamer.id,
-        stream_session_id: null,
-        stream_id: `manual-test:${streamer.id}`,
-        viewer_count: 25,
-        sampled_at: now,
-        source: "manual_test",
-        idempotency_key: `widget-test:${requestId}`,
-        passive_damage_preview: null,
-      }).select("id,viewer_count,sampled_at,source").single();
+      if (!streamer.tracking_enabled) return json({ ok: false, error: "tracking_disabled" }, 409);
+      const { data, error } = await service.rpc("upsert_twitch_stream_snapshot", {
+        p_event_id: event.id,
+        p_streamer_id: streamer.id,
+        p_stream_id: `manual-test:${streamer.id}`,
+        p_viewer_count: 25,
+        p_started_at: now,
+        p_sampled_at: now,
+        p_idempotency_key: `widget-test:${requestId}`,
+        p_source: "manual_test",
+      });
       if (error) throw error;
       result = data;
     }

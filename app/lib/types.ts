@@ -17,6 +17,7 @@ export type MinionDamageClass = "STANDARD" | "HIGH" | "ELITE" | "SPECIAL";
 export type MinionTriggerSource = "scheduler" | "raid" | "admin" | "manual_test";
 export type AdminRole = "owner" | "admin" | "operator" | "viewer";
 export type TwitchHealthStatus = "healthy" | "warning" | "error";
+export type PassiveDamageMode = "disabled" | "dry_run" | "test" | "active";
 export type OverlayIdentityStatus =
   | "loading"
   | "resolved"
@@ -62,6 +63,10 @@ export interface StreamerState {
   avatarUrl: string | null;
   enabled: boolean;
   isTestAccount?: boolean;
+  trackingEnabled: boolean;
+  gameplayEnabled: boolean;
+  publicVisible: boolean;
+  includeInCalibration: boolean;
   damage: number;
   minionsDefeated: number;
   live: boolean;
@@ -83,6 +88,10 @@ export interface StreamerInput {
   avatarUrl?: string | null;
   enabled: boolean;
   isTestAccount?: boolean;
+  trackingEnabled?: boolean;
+  gameplayEnabled?: boolean;
+  publicVisible?: boolean;
+  includeInCalibration?: boolean;
 }
 
 export interface MinionInstance {
@@ -148,6 +157,75 @@ export interface EventSettingsState {
   passiveDamageMultiplier: number;
   activeDamageMultiplier: number;
   passiveTickSeconds: number;
+  twitchTrackingEnabled: boolean;
+  passiveDamageEnabled: boolean;
+  passiveDamageMode: PassiveDamageMode;
+  passiveBaseDamage: number;
+  passiveCurveExponent: number;
+  passiveSoftCap: number;
+  passiveMinDamage: number;
+  passiveMaxDamage: number;
+  passiveUnderdogFactor: number;
+  passiveConfigurationVersion: number;
+}
+
+export interface PassiveDamageTickState {
+  id: string | null;
+  streamerId: string | null;
+  bucketStartedAt: string | null;
+  mode: PassiveDamageMode;
+  viewerEstimate: number | null;
+  sampleCount: number;
+  configuredDamage: number;
+  appliedDamage: number;
+  status: "none" | "pending" | "preview" | "applied" | "skipped";
+  skipReason: string | null;
+  configurationVersion: number;
+  processedAt: string | null;
+}
+
+export interface EventJobStatusState {
+  key: "twitch_sync" | "minion_tick" | "passive_damage_tick" | "eventsub_sync";
+  status: "idle" | "running" | "healthy" | "warning" | "error";
+  lastStartedAt: string | null;
+  lastSuccessAt: string | null;
+  lastErrorAt: string | null;
+  lastError: string | null;
+  nextExpectedAt: string | null;
+}
+
+export interface CalibrationStreamerState {
+  streamerId: string;
+  displayName: string;
+  included: boolean;
+  isTestAccount: boolean;
+  sampleCount: number;
+  averageViewers: number;
+  medianViewers: number;
+  peakViewers: number;
+  streams: number;
+  streamsPerWeek: number;
+  averageStreamSeconds: number;
+  totalLiveSeconds: number;
+  dryRunDamage: number;
+  passiveDamagePerHour: number;
+  appliedPassiveDamage: number;
+  minionsSpawned: number;
+  minionsDefeated: number;
+  minionsFailed: number;
+  minionSuccessRates: Record<string, { spawned: number; defeated: number; successRate: number }>;
+}
+
+export interface CalibrationState {
+  streamers: CalibrationStreamerState[];
+  includedStreamers: number;
+  totalSamples: number;
+  projectedPassiveDamage: number;
+  projectedPassiveDamagePerHour: number;
+  maxConcurrentStreamers: number;
+  minionsSpawned: number;
+  minionsDefeated: number;
+  minionsFailed: number;
 }
 
 export interface EventLogEntry {
@@ -226,6 +304,9 @@ export interface EventState {
   minions: MinionInstance[];
   milestones: MilestoneState[];
   twitch: TwitchIntegrationState;
+  passiveDamage: PassiveDamageTickState;
+  jobs: EventJobStatusState[];
+  calibration: CalibrationState;
   log: EventLogEntry[];
 }
 

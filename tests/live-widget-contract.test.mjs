@@ -45,7 +45,7 @@ test("production fields contain only visual controls while test build exposes do
     "testSpawnGhost", "testSpawnZombie", "testSpawnSpider", "testSpawnWitch", "testSpawnBats",
     "testSpawnReaper", "testSpawnHerald", "testForceSuccess", "testForceFailure", "testCancelMinion",
     "testExpireMinion", "testFog", "testZombieHands", "testSpiderWeb", "testWitchDistortion",
-    "testBatAttack", "testDarkness", "testRoyalCurse", "testRaid", "testHeraldNow",
+    "testBatAttack", "testDarkness", "testRoyalCurse", "testRaid", "testHeraldNow", "testPassiveTick",
   ]) assert.equal(testing.fields[key].type, "button", `${key} should be a StreamElements button field`);
   assert.match(production.js, /eventSlug: "halloween-2026"/);
   assert.match(testing.js, /eventSlug: "halloween-2026-test"/);
@@ -78,7 +78,7 @@ test("dedicated test event receives the complete v0.4 engine configuration witho
 test("widget test actions derive authority server side and cannot accept client damage or HP", async () => {
   const source = await readFile(testActionFunction, "utf8");
   assert.match(source, /event\.status !== "testing"/);
-  assert.match(source, /!streamer\?\.enabled \|\| !streamer\.is_test_account/);
+  assert.match(source, /!streamer\?\.enabled \|\| !streamer\.gameplay_enabled \|\| !streamer\.is_test_account/);
   assert.match(source, /forbiddenAuthorityFields/);
   assert.match(source, /"damage", "amount", "hp"/);
   assert.match(source, /rpc\("apply_boss_damage"/);
@@ -106,6 +106,8 @@ test("real widget lifecycle uses StreamElements events, Supabase Realtime, fallb
   assert.match(testing.css, /\.minion-card\s*\{[^}]*position:\s*fixed/is);
   assert.match(testing.css, /@keyframes bats-across-screen/);
   assert.match(testing.js, /renderedMinionSignature/);
-  assert.match(testing.js, /MINION_ARTWORK_CACHE/);
+  assert.match(testing.js, /actorStates/);
+  assert.match(testing.js, /assetManifest: "https:\/\//);
+  assert.match(testing.js, /requestAnimationFrame\(animateActors\)/);
   assert.match(testing.js, /minion-progress/);
 });
