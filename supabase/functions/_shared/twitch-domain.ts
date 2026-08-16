@@ -28,7 +28,9 @@ export function buildStreamSyncPlan<T extends { id: string; twitch_user_id: stri
 }
 
 export function eventSubKey(type: string, condition: Record<string, string>) {
-  const canonical = Object.entries(condition).sort(([left], [right]) => left.localeCompare(right));
+  const canonical = Object.entries(condition)
+    .filter(([, value]) => String(value).trim().length > 0)
+    .sort(([left], [right]) => left.localeCompare(right));
   return `${type}:${JSON.stringify(Object.fromEntries(canonical))}`;
 }
 

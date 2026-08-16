@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
+import { maybeSendDiscordLiveAnnouncement } from "./discord-announcements.ts";
 import { TwitchClient, type TwitchEventSubSubscription } from "./twitch-client.ts";
 import {
   buildStreamSyncPlan,
@@ -21,8 +22,12 @@ type StreamerRow = {
   tracking_enabled: boolean;
 };
 
-function safeError(error: unknown) {
-  return error instanceof Error ? error.message.slice(0, 500) : "Unbekannter Twitch-Fehler";
+export function safeTwitchError(error: unknown, fallback = "Unbekannter Twitch-Fehler") {
+  if (error instanceof Error && error.message) return error.message.slice(0, 500);
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message.slice(0, 500);
+  }
+  return fallback;
 }
 
 export function twitchClientFromEnvironment() {
@@ -113,13 +118,13 @@ export async function resolveTwitchStreamerIds(
   } catch (error) {
     await updateTwitchHealth(service, eventId, {
       health_status: "error",
-      health_reason: safeError(error),
+      health_reason: safeTwitchError(error),
       last_error_at: new Date().toISOString(),
-      last_error: safeError(error),
+      last_error: safeTwitchError(error),
     });
     await writeTwitchLog(service, eventId, "twitch_api_request_failed", "Twitch-ID-Auflösung fehlgeschlagen.", {
       level: "error",
-      metadata: { operation: "get_users", error: safeError(error) },
+      metadata: { operation: "get_users", error: safeTwitchError(error) },
     });
     throw error;
   }
@@ -153,7 +158,7 @@ export async function syncTwitchStreams(
     // No state is mutated before all Twitch batches have completed successfully.
     streams = await twitch.getStreamsByUserIds(streamers.map((streamer) => streamer.twitch_user_id));
   } catch (error) {
-    const message = safeError(error);
+    const message = safeTwitchError(error);
     await updateTwitchHealth(service, eventId, {
       health_status: "error",
       health_reason: message,
@@ -188,6 +193,18 @@ export async function syncTwitchStreams(
       if (rpcError) throw rpcError;
       live += 1;
       if (result?.sampleId) samples += 1;
+      await maybeSendDiscordLiveAnnouncement(service, {
+        eventId,
+        streamerId: item.streamer.id,
+        streamId: item.stream.id,
+        stream: {
+          streamTitle: item.stream.title,
+          gameName: item.stream.game_name,
+          thumbnailUrl: item.stream.thumbnail_url,
+          viewerCount,
+          startedAt: item.stream.started_at,
+        },
+      });
     } else {
       const { error: rpcError } = await service.rpc("mark_twitch_stream_offline", {
         p_event_id: eventId,
@@ -231,63 +248,19 @@ function subscriptionRow(subscription: TwitchEventSubSubscription) {
   };
 }
 
-export async function syncEventSubSubscriptions(
+async function mirrorEventSubSubscriptions(
   service: ServiceClient,
-  twitch: TwitchClient,
   callback: string,
-  secret: string,
+  subscriptions: TwitchEventSubSubscription[],
 ) {
-  if (!callback.startsWith("https://")) throw new Error("TWITCH_EVENTSUB_CALLBACK_URL muss eine HTTPS-URL sein.");
-  if (secret.length < 10 || secret.length > 100) throw new Error("TWITCH_EVENTSUB_SECRET muss 10 bis 100 Zeichen lang sein.");
-
-  const { data: streamerData, error: streamerError } = await service.from("streamers")
-    .select("id,event_id,twitch_user_id,enabled,tracking_enabled,events!inner(status)")
-    .not("twitch_user_id", "is", null);
-  if (streamerError) throw streamerError;
-  const allStreamers = (streamerData ?? []) as unknown as Array<{
-    event_id: string;
-    twitch_user_id: string;
-    enabled: boolean;
-    tracking_enabled: boolean;
-    events: { status: string };
-  }>;
-  const activeIds = allStreamers
-    .filter((streamer) => streamer.enabled && streamer.tracking_enabled && ["testing", "active", "paused"].includes(streamer.events.status))
-    .map((streamer) => streamer.twitch_user_id);
-  const desired = desiredEventSubSubscriptions(activeIds);
-  const desiredKeys = new Set(desired.map((item) => eventSubKey(item.type, item.condition)));
-  let existing = await twitch.listEventSubSubscriptions();
-  const managed = existing.filter((subscription) => isManagedSubscription(subscription, callback));
-
-  const kept = new Set<string>();
-  let removed = 0;
-  for (const subscription of managed) {
-    const key = eventSubKey(subscription.type, subscription.condition);
-    if (!desiredKeys.has(key) || kept.has(key)) {
-      await twitch.deleteEventSubSubscription(subscription.id);
-      removed += 1;
-    } else {
-      kept.add(key);
-    }
-  }
-
-  let created = 0;
-  for (const item of desired) {
-    const key = eventSubKey(item.type, item.condition);
-    if (kept.has(key)) continue;
-    await twitch.createEventSubSubscription({ ...item, callback, secret });
-    kept.add(key);
-    created += 1;
-  }
-
-  existing = await twitch.listEventSubSubscriptions();
-  const current = existing.filter((subscription) => isManagedSubscription(subscription, callback));
+  const current = subscriptions.filter((subscription) => isManagedSubscription(subscription, callback));
   if (current.length) {
     const { error } = await service.from("twitch_eventsub_subscriptions").upsert(current.map(subscriptionRow), {
       onConflict: "twitch_subscription_id",
     });
     if (error) throw error;
   }
+
   const currentIds = new Set(current.map((subscription) => subscription.id));
   const { data: mirroredRows, error: mirroredError } = await service.from("twitch_eventsub_subscriptions")
     .select("twitch_subscription_id")
@@ -302,7 +275,98 @@ export async function syncEventSubSubscriptions(
       .in("twitch_subscription_id", staleIds);
     if (error) throw error;
   }
+  return current;
+}
+
+export async function syncEventSubSubscriptions(
+  service: ServiceClient,
+  twitch: TwitchClient,
+  callback: string,
+  secret: string,
+) {
+  if (!callback.startsWith("https://")) throw new Error("TWITCH_EVENTSUB_CALLBACK_URL muss eine HTTPS-URL sein.");
+  if (secret.length < 10 || secret.length > 100) throw new Error("TWITCH_EVENTSUB_SECRET muss 10 bis 100 Zeichen lang sein.");
+
+  const { data: streamerData, error: streamerError } = await service.from("streamers")
+    .select("id,event_id,twitch_user_id,enabled,tracking_enabled,events!streamers_event_id_fkey(status)")
+    .not("twitch_user_id", "is", null);
+  if (streamerError) throw streamerError;
+  const allStreamers = (streamerData ?? []) as unknown as Array<{
+    event_id: string;
+    twitch_user_id: string;
+    enabled: boolean;
+    tracking_enabled: boolean;
+    events: { status: string };
+  }>;
+  const activeIds = allStreamers
+    .filter((streamer) => streamer.enabled && streamer.tracking_enabled && ["testing", "active", "paused"].includes(streamer.events.status))
+    .map((streamer) => streamer.twitch_user_id);
+  const desired = desiredEventSubSubscriptions(activeIds);
+  const desiredKeys = new Set(desired.map((item) => eventSubKey(item.type, item.condition)));
   const eventIds = [...new Set(allStreamers.map((streamer) => streamer.event_id))];
+  let removed = 0;
+  let created = 0;
+  let current: TwitchEventSubSubscription[] = [];
+  let totalCost = 0;
+  let maxTotalCost = 0;
+  try {
+    let snapshot = await twitch.getEventSubSubscriptionSnapshot();
+    const managed = snapshot.subscriptions.filter((subscription) => isManagedSubscription(subscription, callback));
+    const kept = new Set<string>();
+
+    for (const subscription of managed) {
+      const key = eventSubKey(subscription.type, subscription.condition);
+      if (!desiredKeys.has(key) || kept.has(key)) {
+        await twitch.deleteEventSubSubscription(subscription.id);
+        removed += 1;
+      } else {
+        kept.add(key);
+      }
+    }
+
+    for (const item of desired) {
+      const key = eventSubKey(item.type, item.condition);
+      if (kept.has(key)) continue;
+      const response = await twitch.createEventSubSubscription({ ...item, callback, secret });
+      if (response.data.length) {
+        const { error } = await service.from("twitch_eventsub_subscriptions").upsert(response.data.map(subscriptionRow), {
+          onConflict: "twitch_subscription_id",
+        });
+        if (error) throw error;
+      }
+      kept.add(key);
+      created += 1;
+    }
+
+    snapshot = await twitch.getEventSubSubscriptionSnapshot();
+    totalCost = snapshot.totalCost;
+    maxTotalCost = snapshot.maxTotalCost;
+    current = await mirrorEventSubSubscriptions(service, callback, snapshot.subscriptions);
+  } catch (error) {
+    const detail = safeTwitchError(error, "EventSub-Synchronisierung fehlgeschlagen.");
+    try {
+      const recoverySnapshot = await twitch.getEventSubSubscriptionSnapshot();
+      totalCost = recoverySnapshot.totalCost;
+      maxTotalCost = recoverySnapshot.maxTotalCost;
+      current = await mirrorEventSubSubscriptions(service, callback, recoverySnapshot.subscriptions);
+    } catch (recoveryError) {
+      console.error("EventSub recovery mirror failed", safeTwitchError(recoveryError));
+    }
+    for (const eventId of eventIds) {
+      await updateTwitchHealth(service, eventId, {
+        health_status: "error",
+        health_reason: detail,
+        webhook_configured: true,
+        last_error: detail,
+      });
+      await writeTwitchLog(service, eventId, "eventsub_subscription_sync_failed", detail, {
+        level: "error",
+        metadata: { created, removed, current: current.length, total_cost: totalCost, max_total_cost: maxTotalCost },
+      });
+    }
+    throw new Error(`EventSub-Synchronisierung fehlgeschlagen: ${detail}`);
+  }
+
   const now = new Date().toISOString();
   for (const eventId of eventIds) {
     await updateTwitchHealth(service, eventId, {
@@ -313,8 +377,8 @@ export async function syncEventSubSubscriptions(
       last_error: null,
     });
     await writeTwitchLog(service, eventId, "eventsub_subscriptions_synced", "EventSub-Subscriptions synchronisiert.", {
-      metadata: { created, removed, total: current.length },
+      metadata: { created, removed, total: current.length, total_cost: totalCost, max_total_cost: maxTotalCost },
     });
   }
-  return { desired: desired.length, current: current.length, created, removed };
+  return { desired: desired.length, current: current.length, created, removed, totalCost, maxTotalCost };
 }

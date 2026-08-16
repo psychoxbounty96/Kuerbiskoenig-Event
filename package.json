@@ -14,7 +14,7 @@
     "start": "vite preview",
     "preview": "vite preview",
     "check:pages-env": "node scripts/check-pages-env.mjs",
-    "test": "npm run typecheck && npm run lint && node --check streamelements-widget/widget.js && npm run build:widget && npm run build && node --test tests/rendered-html.test.mjs tests/github-pages-contract.test.mjs tests/supabase-contract.test.mjs tests/twitch-contract.test.mjs tests/minion-contract.test.mjs tests/live-widget-contract.test.mjs tests/finalization-contract.test.mjs && tsx --test tests/domain.test.ts tests/twitch-domain.test.ts tests/minion-domain.test.ts tests/finalization-domain.test.ts",
+    "test": "npm run typecheck && npm run lint && node --check streamelements-widget/widget.js && npm run build:widget && npm run build && node --test tests/rendered-html.test.mjs tests/github-pages-contract.test.mjs tests/supabase-contract.test.mjs tests/twitch-contract.test.mjs tests/minion-contract.test.mjs tests/live-widget-contract.test.mjs tests/finalization-contract.test.mjs tests/discord-contract.test.mjs && tsx --test tests/domain.test.ts tests/twitch-domain.test.ts tests/minion-domain.test.ts tests/finalization-domain.test.ts tests/discord-domain.test.ts",
     "typecheck": "tsc --noEmit --incremental false",
     "lint": "eslint . --ignore-pattern github-pages-dist --ignore-pattern node_modules-corrupt",
     "supabase:reset": "supabase db reset",

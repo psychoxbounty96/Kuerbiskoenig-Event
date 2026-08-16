@@ -18,6 +18,9 @@ export interface TwitchStream {
   viewer_count: number;
   started_at: string;
   type: string;
+  title?: string;
+  game_name?: string;
+  thumbnail_url?: string;
 }
 
 export interface TwitchEventSubSubscription {
@@ -28,6 +31,13 @@ export interface TwitchEventSubSubscription {
   condition: Record<string, string>;
   transport: { method: string; callback?: string };
   created_at: string;
+}
+
+export interface TwitchEventSubSubscriptionSnapshot {
+  subscriptions: TwitchEventSubSubscription[];
+  total: number;
+  totalCost: number;
+  maxTotalCost: number;
 }
 
 type FetchLike = typeof fetch;
@@ -138,20 +148,33 @@ export class TwitchClient {
     return streams;
   }
 
-  async listEventSubSubscriptions() {
+  async getEventSubSubscriptionSnapshot(): Promise<TwitchEventSubSubscriptionSnapshot> {
     const subscriptions: TwitchEventSubSubscription[] = [];
+    let total = 0;
+    let totalCost = 0;
+    let maxTotalCost = 0;
     let cursor = "";
     do {
       const query = new URLSearchParams({ first: "100" });
       if (cursor) query.set("after", cursor);
       const payload = await this.helix<{
         data: TwitchEventSubSubscription[];
+        total?: number;
+        total_cost?: number;
+        max_total_cost?: number;
         pagination?: { cursor?: string };
       }>(`/eventsub/subscriptions?${query}`);
       subscriptions.push(...payload.data);
+      total = Number(payload.total) || subscriptions.length;
+      totalCost = Number(payload.total_cost) || 0;
+      maxTotalCost = Number(payload.max_total_cost) || 0;
       cursor = payload.pagination?.cursor ?? "";
     } while (cursor);
-    return subscriptions;
+    return { subscriptions, total, totalCost, maxTotalCost };
+  }
+
+  async listEventSubSubscriptions() {
+    return (await this.getEventSubSubscriptionSnapshot()).subscriptions;
   }
 
   async createEventSubSubscription(input: {

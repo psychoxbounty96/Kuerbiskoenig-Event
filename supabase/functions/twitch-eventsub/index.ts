@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { maybeSendDiscordLiveAnnouncement } from "../_shared/discord-announcements.ts";
 import {
   constantTimeEqual,
   createEventSubSignature,
@@ -189,10 +190,24 @@ Deno.serve(async (request) => {
           p_observed_at: timestamp,
         });
         if (error) throw error;
+        let announcementStream: {
+          streamTitle?: string;
+          gameName?: string;
+          thumbnailUrl?: string;
+          viewerCount?: number;
+          startedAt: string;
+        } = { startedAt };
         try {
           const current = (await twitch.getStreamsByUserIds([twitchUserId]))
             .find((stream) => stream.user_id === twitchUserId);
           if (current) {
+            announcementStream = {
+              streamTitle: current.title,
+              gameName: current.game_name,
+              thumbnailUrl: current.thumbnail_url,
+              viewerCount: normalizeViewerCount(current.viewer_count),
+              startedAt: current.started_at,
+            };
             const observedAt = new Date();
             const { error: sampleError } = await service.rpc("upsert_twitch_stream_snapshot", {
               p_event_id: streamer.event_id,
@@ -215,6 +230,12 @@ Deno.serve(async (request) => {
             last_error: syncError instanceof Error ? syncError.message.slice(0, 500) : "online_enrichment_failed",
           });
         }
+        await maybeSendDiscordLiveAnnouncement(service, {
+          eventId: streamer.event_id,
+          streamerId: streamer.id,
+          streamId,
+          stream: announcementStream,
+        });
       }
     } else if (subscriptionType === "stream.offline") {
       const twitchUserId = String(event.broadcaster_user_id ?? "");

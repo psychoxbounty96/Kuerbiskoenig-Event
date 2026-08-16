@@ -1,10 +1,11 @@
 -- Run once in the hosted Supabase SQL editor after replacing placeholders.
--- Never commit the replaced file or a real service-role key.
+-- The same random TWITCH_SYNC_CRON_SECRET must be stored as an Edge Function
+-- secret and in Vault. Never commit its real value.
 create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
 
 select vault.create_secret('https://DEIN_PROJECT.supabase.co', 'project_url');
-select vault.create_secret('DEIN_SERVICE_ROLE_KEY', 'service_role_key');
+select vault.create_secret('MINDESTENS_32_ZUFAELLIGE_ZEICHEN', 'twitch_sync_cron_secret');
 
 select cron.schedule(
   'twitch-stream-sync-every-two-minutes',
@@ -14,7 +15,7 @@ select cron.schedule(
     url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/twitch-sync',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'service_role_key')
+      'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'twitch_sync_cron_secret')
     ),
     body := '{}'::jsonb
   ) as request_id;

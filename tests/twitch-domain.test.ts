@@ -14,6 +14,7 @@ import {
   constantTimeEqual,
   createEventSubSignature,
   desiredEventSubSubscriptions,
+  eventSubKey,
   isFreshEventSubTimestamp,
   normalizeViewerCount,
   raidIsEligible,
@@ -97,6 +98,46 @@ test("EventSub desired set contains online, offline and separate raid directions
   assert.deepEqual(desired.map((item) => item.type), ["stream.online", "stream.offline", "channel.raid", "channel.raid"]);
   assert.deepEqual(desired[2].condition, { from_broadcaster_user_id: "42" });
   assert.deepEqual(desired[3].condition, { to_broadcaster_user_id: "42" });
+});
+
+test("EventSub keys ignore empty raid condition fields returned by Twitch", () => {
+  assert.equal(
+    eventSubKey("channel.raid", { from_broadcaster_user_id: "42", to_broadcaster_user_id: "" }),
+    eventSubKey("channel.raid", { from_broadcaster_user_id: "42" }),
+  );
+});
+
+test("EventSub subscription snapshots expose Twitch cost metadata across pages", async () => {
+  const calls: string[] = [];
+  const client = new TwitchClient(
+    { clientId: "client-id", clientSecret: "client-secret" },
+    async (input) => {
+      const url = String(input);
+      calls.push(url);
+      if (url.includes("oauth2/token")) return jsonResponse({ access_token: "app-token", expires_in: 3_600 });
+      const after = new URL(url).searchParams.get("after");
+      if (!after) return jsonResponse({
+        data: [{ id: "sub-1", status: "enabled", type: "stream.online", version: "1", condition: { broadcaster_user_id: "42" }, transport: { method: "webhook", callback: "https://example.com" }, created_at: "2026-08-16T00:00:00Z" }],
+        total: 2,
+        total_cost: 1,
+        max_total_cost: 10,
+        pagination: { cursor: "next" },
+      });
+      return jsonResponse({
+        data: [{ id: "sub-2", status: "enabled", type: "stream.offline", version: "1", condition: { broadcaster_user_id: "42" }, transport: { method: "webhook", callback: "https://example.com" }, created_at: "2026-08-16T00:00:00Z" }],
+        total: 2,
+        total_cost: 1,
+        max_total_cost: 10,
+        pagination: {},
+      });
+    },
+  );
+  const snapshot = await client.getEventSubSubscriptionSnapshot();
+  assert.equal(snapshot.subscriptions.length, 2);
+  assert.equal(snapshot.total, 2);
+  assert.equal(snapshot.totalCost, 1);
+  assert.equal(snapshot.maxTotalCost, 10);
+  assert.equal(calls.filter((call) => call.includes("eventsub/subscriptions")).length, 2);
 });
 
 test("EventSub HMAC covers message id, timestamp and exact raw body", async () => {

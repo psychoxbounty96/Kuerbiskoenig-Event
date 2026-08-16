@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import {
+  safeTwitchError,
   resolveTwitchStreamerIds,
   syncEventSubSubscriptions,
   syncTwitchStreams,
@@ -336,7 +337,7 @@ Deno.serve(async (request) => {
       } catch (error) {
         await service.rpc("mark_event_job_status", {
           p_event_id: event.id, p_job_key: "twitch_sync", p_status: "error",
-          p_error: error instanceof Error ? error.message : "twitch_sync_failed", p_next_expected_at: null, p_metadata: { source: "admin" },
+          p_error: safeTwitchError(error, "twitch_sync_failed"), p_next_expected_at: null, p_metadata: { source: "admin" },
         });
         throw error;
       }
@@ -362,7 +363,7 @@ Deno.serve(async (request) => {
       } catch (error) {
         await service.rpc("mark_event_job_status", {
           p_event_id: event.id, p_job_key: "eventsub_sync", p_status: "error",
-          p_error: error instanceof Error ? error.message : "eventsub_sync_failed", p_next_expected_at: null, p_metadata: { source: "admin" },
+          p_error: safeTwitchError(error, "eventsub_sync_failed"), p_next_expected_at: null, p_metadata: { source: "admin" },
         });
         throw error;
       }

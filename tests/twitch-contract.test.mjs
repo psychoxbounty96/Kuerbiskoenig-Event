@@ -7,6 +7,7 @@ const migrationUrl = new URL("supabase/migrations/202608110002_v0_3_twitch_aware
 const webhookUrl = new URL("supabase/functions/twitch-eventsub/index.ts", root);
 const serviceUrl = new URL("supabase/functions/_shared/twitch-service.ts", root);
 const syncUrl = new URL("supabase/functions/twitch-sync/index.ts", root);
+const schedulerMigrationUrl = new URL("supabase/migrations/202608160002_enable_twitch_tracking_scheduler.sql", root);
 const onboardingMigrationUrl = new URL("supabase/migrations/202608110003_zero_config_onboarding.sql", root);
 const widgetUrl = new URL("streamelements-widget/widget.js", root);
 const widgetFieldsUrl = new URL("streamelements-widget/fields.json", root);
@@ -35,6 +36,12 @@ test("polling creates samples and sessions but preserves state on Twitch API fai
   assert.match(source, /viewerSampleKey/);
 });
 
+test("EventSub streamer lookup selects the event relationship explicitly", async () => {
+  const source = await readFile(serviceUrl, "utf8");
+  assert.match(source, /events!streamers_event_id_fkey\(status\)/);
+  assert.match(source, /safeTwitchError/);
+});
+
 test("EventSub verifies exact raw body, freshness and HMAC before parsing", async () => {
   const source = await readFile(webhookUrl, "utf8");
   const rawIndex = source.indexOf("await request.text()");
@@ -54,10 +61,17 @@ test("EventSub verifies exact raw body, freshness and HMAC before parsing", asyn
 });
 
 test("scheduler endpoint requires service authorization and never accepts public Twitch secrets", async () => {
-  const source = await readFile(syncUrl, "utf8");
+  const [source, schedulerSql] = await Promise.all([
+    readFile(syncUrl, "utf8"),
+    readFile(schedulerMigrationUrl, "utf8"),
+  ]);
   assert.match(source, /Bearer \$\{SERVICE_ROLE_KEY\}/);
+  assert.match(source, /TWITCH_SYNC_CRON_SECRET\.length >= 32/);
   assert.match(source, /constantTimeEqual/);
   assert.doesNotMatch(source, /NEXT_PUBLIC_TWITCH/);
+  assert.match(schedulerSql, /'\*\/2 \* \* \* \*'/);
+  assert.match(schedulerSql, /twitch_sync_cron_secret/);
+  assert.doesNotMatch(schedulerSql, /service_role_key|process-passive-tick|minion-tick/);
   const appSources = await Promise.all([
     "app/lib/types.ts", "app/lib/providers/supabase-data-provider.ts", "app/overlay/page.tsx",
   ].map((path) => readFile(new URL(path, root), "utf8")));
