@@ -1,5 +1,9 @@
 # Kürbiskönig – Community Boss Event
 
+> **Projektstatus: Pausiert**
+>
+> Die Weiterentwicklung und der produktive Eventbetrieb sind bis auf Weiteres pausiert. Der vorhandene technische Stand bleibt als getestete Grundlage erhalten; es findet derzeit kein offizieller Live-Eventbetrieb statt.
+
 Kürbiskönig ist ein gemeinsames Twitch-Halloween-Event von PsychoXBounty. Der globale Boss, die öffentliche Eventseite und die StreamElements-Overlays teilen sich einen zentralen Supabase-State.
 
 - [Öffentliche Eventseite](https://psychoxbounty96.github.io/Kuerbiskoenig-Event/)

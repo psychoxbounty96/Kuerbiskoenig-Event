@@ -31,9 +31,22 @@ test("public repository omits internal reconstruction reports", async () => {
   assert.doesNotMatch(readme, /supabase link|service_role_key|TWITCH_CLIENT_SECRET/i);
 });
 
-test("public page hides placeholder boss data until Supabase has synced", async () => {
+test("public page hides placeholder boss data while loading and after returning to draft", async () => {
   const page = await read("app/components/PublicEventPage.tsx");
-  assert.match(page, /if \(!runtime\.lastSyncedAt\)/);
-  assert.match(page, /Event in Vorbereitung/);
+  const provider = await read("app/lib/providers/supabase-data-provider.ts");
+  const migration = await read("supabase/migrations/202608160004_public_prelaunch_visibility.sql");
+  assert.match(page, /state\.event\.status === "draft"/);
+  assert.match(page, /Vorbereitung/);
   assert.match(page, /startet bald/);
+  assert.match(provider, /get_public_event_visibility/);
+  assert.match(provider, /mapPrelaunchSnapshot/);
+  assert.match(migration, /grant execute on function public\.get_public_event_visibility\(text\) to anon, authenticated/i);
+});
+
+test("public page keeps infrastructure and development labels out of visitor copy", async () => {
+  const page = await read("app/components/PublicEventPage.tsx");
+  assert.doesNotMatch(page, /Live · Supabase|Lokale Mockdaten|Developer Preview|Live Event Engine|v0\.4/);
+  assert.match(page, /globalen Bossfortschritt/);
+  assert.match(page, /PXB Labs/);
+  assert.doesNotMatch(page, /href=\{liveStreamers\.length \? "#live"/);
 });

@@ -73,6 +73,36 @@ function mapIdentityResolution(value: unknown, channelUsername: string, eventSlu
   };
 }
 
+function mapPrelaunchSnapshot(payloadValue: unknown): EventState {
+  const payload = asRecord(payloadValue);
+  const state = clone(INITIAL_EVENT_STATE);
+  return {
+    ...state,
+    updatedAt: asString(payload.updated_at, new Date().toISOString()),
+    event: {
+      id: asString(payload.event_id),
+      slug: asString(payload.event_slug, EVENT_SLUG),
+      name: asString(payload.event_name, "Kürbiskönig Community Event"),
+      description: "",
+      status: "draft",
+      active: false,
+      isTest: true,
+    },
+    stats: {
+      globalDamage: 0,
+      minionsDefeated: 0,
+      minionsEscaped: 0,
+      communities: 0,
+      uniqueParticipants: 0,
+    },
+    streamers: [],
+    minions: [],
+    milestones: [],
+    jobs: [],
+    log: [],
+  };
+}
+
 function mapPublicSnapshot(payloadValue: unknown): EventState {
   const payload = asRecord(payloadValue);
   const event = asRecord(payload.event);
@@ -573,8 +603,19 @@ export class SupabaseDataProvider implements DataProvider {
       const client = this.ensureClient();
       const { data, error } = await client.rpc("get_public_event_state", { p_event_slug: EVENT_SLUG });
       if (error) throw error;
-      if (!data) throw new Error(`Event „${EVENT_SLUG}“ wurde nicht gefunden.`);
-      this.state = mapPublicSnapshot(data);
+      if (data) {
+        this.state = mapPublicSnapshot(data);
+      } else {
+        const { data: visibility, error: visibilityError } = await client.rpc("get_public_event_visibility", {
+          p_event_slug: EVENT_SLUG,
+        });
+        if (visibilityError) throw visibilityError;
+        const availability = asRecord(visibility);
+        if (asString(availability.event_status) !== "draft") {
+          throw new Error(`Event „${EVENT_SLUG}“ wurde nicht gefunden.`);
+        }
+        this.state = mapPrelaunchSnapshot(availability);
+      }
       this.runtime.status = this.runtime.realtime === "disconnected" ? "degraded" : "ready";
       this.runtime.error = this.runtime.status === "degraded" ? this.runtime.error : null;
       this.runtime.lastSyncedAt = new Date().toISOString();
