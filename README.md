@@ -4,8 +4,9 @@ Eine eventunabhängige Engine für gemeinsame Twitch-Events. Supabase hält den 
 StreamElements stellt das Overlay bereit und versionierte Event-Packs liefern Inhalt und Gestaltung.
 Die öffentliche Produktseite wird künftig als Astro-Oberfläche in `pxblabs.de` eingebunden.
 
-> **Betriebsstatus:** Das extrahierte Pack `halloween-2026` und sein Produktionsevent bleiben pausiert.
-> Der Umbau der Engine aktiviert weder das Event noch produktiven passiven Schaden.
+> **Installationsstatus:** Supabase ist eine leere Engine-Installation. Es existieren keine Events,
+> Streamer, Admin-Zuordnungen, Trackingdaten oder aktiven externen Integrationen. Das Pack
+> `halloween-2026` liegt ausschließlich als noch nicht registrierte Inhaltsvorlage im Repository.
 
 ## Trennung der Bausteine
 
@@ -34,6 +35,9 @@ Der Widget-Build liegt unter
 HTML, CSS, JS und Fields. Statische Pack-Assets werden beim Build nach
 `public/event-packs/<pack-key>/<version>/` synchronisiert. Sprite-Sheets können später im selben
 Manifest an die Stelle statischer Bilder treten, ohne die Engine umzubauen.
+
+Das Widget heißt unabhängig vom gewählten Inhalt **PXB Event Engine Widget**. Eventname, Farben,
+Texte und Artwork werden erst beim Pack-Build eingebettet.
 
 ## Astro / pxblabs.de
 

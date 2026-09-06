@@ -16,7 +16,7 @@ export function getPackAssetUrl(asset: EventPackMinion["asset"] | null | undefin
   const source = getPackAssetSource(asset);
   if (!source) return "";
   if (/^https:\/\//i.test(source)) return source;
-  return `${import.meta.env.BASE_URL}${source.replace(/^\/+/, "")}`;
+  return `${import.meta.env.BASE_URL}event-packs/${ACTIVE_EVENT_PACK.key}/${ACTIVE_EVENT_PACK.version}/${source.replace(/^\/+/, "")}`;
 }
 
 function roman(value: number) {

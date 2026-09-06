@@ -2,7 +2,7 @@
 -- Reuses project_url and service_role_key from Supabase Vault; never paste the
 -- real service-role key into this repository.
 select cron.schedule(
-  'kuerbiskoenig-passive-damage-every-two-minutes',
+  'pxb-event-engine-passive-damage-every-two-minutes',
   '*/2 * * * *',
   $$
     select net.http_post(
@@ -17,7 +17,7 @@ select cron.schedule(
 );
 
 -- Safe checks:
--- select * from cron.job where jobname='kuerbiskoenig-passive-damage-every-two-minutes';
+-- select * from cron.job where jobname='pxb-event-engine-passive-damage-every-two-minutes';
 -- select * from public.event_job_status where job_key='passive_damage_tick';
 -- Recoverable removal:
--- select cron.unschedule('kuerbiskoenig-passive-damage-every-two-minutes');
+-- select cron.unschedule('pxb-event-engine-passive-damage-every-two-minutes');

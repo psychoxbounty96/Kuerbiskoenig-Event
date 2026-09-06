@@ -132,6 +132,14 @@
   "website": {
     "headline": "Gemeinsam gegen den Kürbiskönig",
     "shortDescription": "Mehrere Communities, ein gemeinsamer Raidboss.",
-    "callToAction": "Teilnehmende Streams entdecken"
+    "callToAction": "Teilnehmende Streams entdecken",
+    "assets": {
+      "logo": "assets/branding/logo-head.png",
+      "favicon": "assets/branding/favicon.ico",
+      "favicon16": "assets/branding/favicon-16x16.png",
+      "favicon32": "assets/branding/favicon-32x32.png",
+      "appleTouchIcon": "assets/branding/apple-touch-icon.png",
+      "socialCard": "assets/branding/social-card.png"
+    }
   }
 }

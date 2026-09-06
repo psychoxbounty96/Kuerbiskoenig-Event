@@ -25,6 +25,7 @@ const assetPaths = new Set([
   sourceOf(pack.boss.asset),
   ...pack.minions.map((item) => sourceOf(item.asset)),
   ...pack.effects.map((item) => sourceOf(item.asset)),
+  ...Object.values(pack.website?.assets ?? {}).map(sourceOf),
 ].filter((value) => value && !/^https:\/\//i.test(value)));
 
 for (const assetPath of assetPaths) {

@@ -15,7 +15,7 @@ async function readApplicationBundle() {
 
 test("builds the public GitHub Pages entry", async () => {
   const html = await readBuilt("index.html");
-  assert.match(html, /Kürbiskönig/);
+  assert.match(html, /PXB Community Event Engine/);
   assert.match(html, /data-page="public"/);
   assert.match(html, /assets\/main-[^"]+\.js/);
   assert.doesNotMatch(html, /dist\/server|codex-preview|chatgpt/i);
@@ -34,7 +34,7 @@ test("ships website, admin and overlay application code in the static bundle", a
   const bundle = await readApplicationBundle();
   assert.match(bundle, /GEMEINSAMES COMMUNITY EVENT/);
   assert.match(bundle, /TEILNEHMENDE COMMUNITIES/);
-  assert.match(bundle, /Minion Debugger/);
+  assert.match(bundle, /Encounter Debugger/);
   assert.match(bundle, /Overlay erfolgreich verbunden/);
   assert.match(bundle, /Simulate Raid/);
   assert.doesNotMatch(bundle, /YOUR_PROJECT|sb_publishable_REPLACE_ME/);
@@ -47,33 +47,28 @@ test("publishes all minion placeholder images at versioned pack paths", async ()
   }
 });
 
-test("GitHub Pages shell exposes raid branding and social metadata", async () => {
+test("GitHub Pages shell exposes neutral engine metadata", async () => {
   const source = await readFile("deployment/github-pages/site/index.html", "utf8");
 
-  assert.match(source, /assets\/branding\/favicon-32x32\.png/);
-  assert.match(source, /assets\/branding\/apple-touch-icon\.png/);
-  assert.match(source, /property="og:image"[^>]+og\.png/);
-  assert.match(source, /name="twitter:card" content="summary_large_image"/);
-  assert.doesNotMatch(source, /favicon\.svg/);
+  assert.match(source, /PXB Community Event Engine/);
+  assert.match(source, /PXB-Community-Event-Engine/);
+  assert.match(source, /name="twitter:card" content="summary"/);
+  assert.doesNotMatch(source, /Kürbiskönig|Kuerbiskoenig-Event|og\.png/);
 });
 
-test("publishes the boss artwork at the stable StreamElements URL", async () => {
-  const image = new URL("../github-pages-dist/assets/boss/pumpkin-king.png", import.meta.url);
-  const legacyImage = new URL("../github-pages-dist/assets/boss/Kürbiskönig mit leuchtendem Zepter.png", import.meta.url);
+test("publishes the boss artwork only inside the versioned pack", async () => {
   const packImage = new URL("../github-pages-dist/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png", import.meta.url);
-  assert.ok((await stat(image)).size > 1_000_000, "boss artwork should be published");
-  assert.equal((await stat(legacyImage)).size, (await stat(image)).size, "existing widgets should retain a working boss URL");
-  assert.equal((await stat(packImage)).size, (await stat(image)).size, "versioned pack should publish the boss artwork");
+  assert.ok((await stat(packImage)).size > 1_000_000, "versioned pack should publish the boss artwork");
 });
 
-test("publishes the website branding, favicon set and social card", async () => {
+test("publishes website branding only inside the versioned pack", async () => {
   const assets = [
-    "assets/branding/kuerbiskoenig-logo-head.png",
-    "assets/branding/favicon.ico",
-    "assets/branding/favicon-32x32.png",
-    "assets/branding/favicon-16x16.png",
-    "assets/branding/apple-touch-icon.png",
-    "og.png",
+    "event-packs/halloween-2026/1.0.0/assets/branding/logo-head.png",
+    "event-packs/halloween-2026/1.0.0/assets/branding/favicon.ico",
+    "event-packs/halloween-2026/1.0.0/assets/branding/favicon-32x32.png",
+    "event-packs/halloween-2026/1.0.0/assets/branding/favicon-16x16.png",
+    "event-packs/halloween-2026/1.0.0/assets/branding/apple-touch-icon.png",
+    "event-packs/halloween-2026/1.0.0/assets/branding/social-card.png",
   ];
 
   for (const path of assets) {

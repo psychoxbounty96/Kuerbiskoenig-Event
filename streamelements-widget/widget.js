@@ -276,14 +276,14 @@ function stopActorEngine() {
 
 function setIdentity(next) {
   identity = next;
-  document.getElementById("event-widget").dataset.identityStatus = next.status;
+  document.getElementById("pxb-event-engine-widget").dataset.identityStatus = next.status;
   updateDiagnostics();
 }
 
 function applyVisualFields() {
   const scale = Math.max(50, Math.min(150, number(fieldData.overlayScale || 100)));
   const alignment = ["left", "right"].includes(fieldData.alignment) ? fieldData.alignment : "left";
-  const widget = document.getElementById("event-widget");
+  const widget = document.getElementById("pxb-event-engine-widget");
   widget.style.setProperty("--widget-scale", String(scale / 100));
   widget.dataset.alignment = alignment;
   widget.classList.toggle("reduced-motion", Boolean(fieldData.reducedMotion));
@@ -327,7 +327,7 @@ function updateDiagnostics() {
 
 function hideOverlay(status) {
   setIdentity({ ...identity, status });
-  const widget = document.getElementById("event-widget");
+  const widget = document.getElementById("pxb-event-engine-widget");
   widget.hidden = !diagnosticsVisible();
   document.getElementById("identity-card").hidden = true;
   document.getElementById("boss-card").hidden = true;
@@ -340,7 +340,7 @@ function showIdentityMessage(title, detail) {
     hideOverlay(identity.status);
     return;
   }
-  const widget = document.getElementById("event-widget");
+  const widget = document.getElementById("pxb-event-engine-widget");
   widget.hidden = false;
   document.getElementById("boss-card").hidden = true;
   document.getElementById("minion-card").hidden = true;
@@ -586,7 +586,7 @@ function renderEvent(state) {
   const eventState = document.getElementById("event-state");
   eventState.hidden = !paused;
   eventState.textContent = paused ? `${WIDGET_CONFIG.pack.theme.labels.paused || "Event pausiert"} · Fortsetzung erfolgt automatisch` : "";
-  document.getElementById("event-widget").hidden = false;
+  document.getElementById("pxb-event-engine-widget").hidden = false;
   document.getElementById("identity-card").hidden = true;
   document.getElementById("boss-card").hidden = false;
   renderMinion(paused ? null : currentMinion(state));
@@ -770,7 +770,7 @@ async function detectEditorMode() {
   } catch {
     editorMode = false;
   }
-  if (diagnosticsVisible()) document.getElementById("event-widget").hidden = false;
+  if (diagnosticsVisible()) document.getElementById("pxb-event-engine-widget").hidden = false;
   updateDiagnostics();
 }
 
