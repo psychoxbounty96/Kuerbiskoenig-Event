@@ -1,4 +1,4 @@
-const required = ["VITE_EVENT_SLUG", "VITE_SUPABASE_URL", "VITE_SUPABASE_PUBLISHABLE_KEY"];
+const required = ["VITE_EVENT_PACK_KEY", "VITE_EVENT_SLUG", "VITE_SUPABASE_URL", "VITE_SUPABASE_PUBLISHABLE_KEY"];
 const missing = required.filter((name) => !process.env[name]?.trim());
 
 if (missing.length) {

@@ -43,6 +43,7 @@ yarn-error.log*
 !/dist/streamelements/**
 /github-pages-dist/
 /public/assets/minions/
+/public/event-packs/
 /.wrangler/
 /outputs/
 /work/

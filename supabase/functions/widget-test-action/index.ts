@@ -18,6 +18,9 @@ type Body = Record<string, unknown> & {
   eventSlug?: string;
   channelUsername?: string;
   requestId?: string;
+  definitionKey?: string;
+  effectKey?: string;
+  phaseId?: number;
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -26,34 +29,12 @@ const service = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-const MINION_ACTIONS: Record<string, string> = {
-  spawn_ghost: "ghost",
-  spawn_zombie_horde: "zombie_horde",
-  spawn_spider_queen: "spider_queen",
-  spawn_witch: "witch",
-  spawn_bat_swarm: "bat_swarm",
-  spawn_reaper: "reaper",
-  spawn_kings_herald: "kings_herald",
-  spawn_herald_now: "kings_herald",
-};
-
-const CURSE_ACTIONS: Record<string, string> = {
-  test_fog: "fog",
-  test_zombie_hands: "zombie_hands",
-  test_spider_web: "spider_web",
-  test_witch_distortion: "witch_distortion",
-  test_bat_attack: "bat_attack",
-  test_darkness: "darkness",
-  test_royal_curse: "royal_curse",
-};
-
 const ALLOWED_ACTIONS = new Set([
   "reload_state", "tick", "test_boss_hit", "test_boss_big_hit", "reset_test_boss",
   "test_passive_tick",
-  "set_phase_1", "set_phase_2", "set_phase_3", "set_phase_4",
+  "set_phase", "spawn_minion", "test_effect", "spawn_raid_special_now",
   "force_minion_success", "force_minion_failure", "cancel_minion", "expire_minion",
   "simulate_eligible_raid", "create_test_viewer_sample",
-  ...Object.keys(MINION_ACTIONS), ...Object.keys(CURSE_ACTIONS),
 ]);
 
 function text(value: unknown) {
@@ -68,6 +49,11 @@ function normalizedLogin(value: unknown) {
 function normalizedSlug(value: unknown) {
   const slug = text(value).toLowerCase();
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ? slug : "";
+}
+
+function normalizedDefinitionKey(value: unknown) {
+  const key = text(value).toLowerCase();
+  return /^[a-z0-9]+(?:[_-][a-z0-9]+)*$/.test(key) ? key : "";
 }
 
 function forbiddenAuthorityFields(body: Body) {
@@ -142,7 +128,12 @@ Deno.serve(async (request) => {
         streamer_id: streamer.id,
         action,
         request_id: requestId,
-        metadata: { source: "streamelements_widget" },
+        metadata: {
+          source: "streamelements_widget",
+          definition_key: normalizedDefinitionKey(body.definitionKey) || null,
+          effect_key: normalizedDefinitionKey(body.effectKey) || null,
+          phase_id: Number.isInteger(Number(body.phaseId)) ? Number(body.phaseId) : null,
+        },
       });
       if (logError?.code === "23505") return json({ ok: true, message: "Testaktion bereits verarbeitet.", data: { idempotent: true } });
       if (logError) throw logError;
@@ -196,20 +187,31 @@ Deno.serve(async (request) => {
       const { data, error } = await service.rpc("admin_reset_boss", { p_event_id: event.id });
       if (error) throw error;
       result = data;
-    } else if (/^set_phase_[1-4]$/.test(action)) {
-      const phase = Number(action.slice(-1));
-      const ratios: Record<number, number> = { 1: 0.875, 2: 0.625, 3: 0.375, 4: 0.125 };
+    } else if (action === "set_phase") {
+      const phaseId = Number(body.phaseId);
+      if (!Number.isInteger(phaseId) || phaseId < 1) return json({ ok: false, error: "invalid_phase" }, 400);
       const { data: boss, error: bossError } = await service.from("bosses")
         .select("max_hp").eq("event_id", event.id).single();
       if (bossError) throw bossError;
+      const { data: phase, error: phaseError } = await service.from("boss_phases")
+        .select("min_percent,max_percent").eq("event_id", event.id).eq("phase_number", phaseId).single();
+      if (phaseError) throw phaseError;
+      const targetPercent = (Number(phase.min_percent) + Number(phase.max_percent)) / 2;
       const { data, error } = await service.rpc("admin_set_boss_hp", {
         p_event_id: event.id,
-        p_hp: Math.max(1, Math.floor(Number(boss.max_hp) * ratios[phase])),
+        p_hp: Math.max(1, Math.floor(Number(boss.max_hp) * targetPercent / 100)),
       });
       if (error) throw error;
       result = data;
-    } else if (Object.hasOwn(MINION_ACTIONS, action)) {
-      const minionKey = MINION_ACTIONS[action];
+    } else if (action === "spawn_minion" || action === "spawn_raid_special_now") {
+      let minionKey = normalizedDefinitionKey(body.definitionKey);
+      if (action === "spawn_raid_special_now") {
+        const { data: settings, error: settingsError } = await service.from("event_settings")
+          .select("raid_special_minion_key").eq("event_id", event.id).single();
+        if (settingsError) throw settingsError;
+        minionKey = normalizedDefinitionKey(settings.raid_special_minion_key);
+      }
+      if (!minionKey) return json({ ok: false, error: "invalid_minion_definition" }, 400);
       const { data: definition, error: definitionError } = await service.from("minion_definitions")
         .select("id").eq("event_id", event.id).eq("key", minionKey).eq("enabled", true).single();
       if (definitionError) throw definitionError;
@@ -240,10 +242,11 @@ Deno.serve(async (request) => {
       });
       if (error) throw error;
       result = data;
-    } else if (Object.hasOwn(CURSE_ACTIONS, action)) {
-      const curseKey = CURSE_ACTIONS[action];
+    } else if (action === "test_effect") {
+      const curseKey = normalizedDefinitionKey(body.effectKey);
+      if (!curseKey) return json({ ok: false, error: "invalid_effect" }, 400);
       const { data: curse, error } = await service.from("curse_definitions")
-        .select("key,duration_ms,intensity")
+        .select("key,duration_ms,intensity,presentation")
         .eq("event_id", event.id).eq("key", curseKey).eq("enabled", true).single();
       if (error) throw error;
       result = {
@@ -251,6 +254,7 @@ Deno.serve(async (request) => {
           key: curse.key,
           durationMs: Math.min(15_000, Math.max(1_000, Number(curse.duration_ms))),
           intensity: Math.min(1.1, Math.max(0, Number(curse.intensity))),
+          presentation: curse.presentation,
         },
         statisticsChanged: false,
       };

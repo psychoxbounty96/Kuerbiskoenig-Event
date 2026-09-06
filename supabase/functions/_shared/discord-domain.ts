@@ -8,6 +8,14 @@ export interface DiscordLiveAnnouncementInput {
   thumbnailUrl?: string | null;
   viewerCount?: number | null;
   startedAt: string;
+  branding?: DiscordAnnouncementBranding | null;
+}
+
+export interface DiscordAnnouncementBranding {
+  senderName?: string | null;
+  footer?: string | null;
+  defaultLiveDescription?: string | null;
+  color?: number | null;
 }
 
 function cleanText(value: string | null | undefined, maxLength: number) {
@@ -43,6 +51,7 @@ export function isDiscordIncomingWebhookUrl(value: string) {
 }
 
 export function buildDiscordLiveAnnouncement(input: DiscordLiveAnnouncementInput) {
+  const branding = input.branding ?? {};
   const displayName = cleanText(input.displayName, 80) || cleanText(input.twitchLogin, 25) || "Ein Eventstreamer";
   const twitchLogin = cleanText(input.twitchLogin, 25).toLowerCase();
   const twitchUrl = httpsUrl(input.twitchUrl) || `https://www.twitch.tv/${encodeURIComponent(twitchLogin)}`;
@@ -59,17 +68,17 @@ export function buildDiscordLiveAnnouncement(input: DiscordLiveAnnouncementInput
   if (viewerCount > 0) fields.push({ name: "Zuschauer", value: String(viewerCount), inline: true });
 
   return {
-    username: "Kürbiskönig Event",
+    username: cleanText(branding.senderName, 80) || "Community Event",
     allowed_mentions: { parse: [] as string[] },
     embeds: [{
       title: `🔴 ${displayName} ist jetzt live!`,
       url: twitchUrl,
-      description: streamTitle || "Die Community stellt sich dem Kürbiskönig.",
-      color: 0xf97316,
+      description: streamTitle || cleanText(branding.defaultLiveDescription, 240) || "Ein teilnehmender Kanal ist jetzt live.",
+      color: Math.max(0, Math.min(0xffffff, Math.floor(Number(branding.color) || 0x7c3aed))),
       ...(avatarUrl ? { thumbnail: { url: avatarUrl } } : {}),
       ...(thumbnailUrl ? { image: { url: thumbnailUrl } } : {}),
       ...(fields.length ? { fields } : {}),
-      footer: { text: "Kürbiskönig Community Boss Event" },
+      footer: { text: cleanText(branding.footer, 200) || "Community Event" },
       timestamp: new Date(input.startedAt).toISOString(),
     }],
   };

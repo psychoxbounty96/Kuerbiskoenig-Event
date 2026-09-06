@@ -1,7 +1,7 @@
 {
   "widgetName": {
     "type": "hidden",
-    "value": "Kürbiskönig Community Boss"
+    "value": "PXB Community Event Engine"
   },
   "overlayScale": {
     "type": "slider",
@@ -10,7 +10,7 @@
     "min": 50,
     "max": 150,
     "step": 5,
-    "group": "🎃 OVERLAY"
+    "group": "OVERLAY"
   },
   "alignment": {
     "type": "dropdown",
@@ -20,25 +20,25 @@
       "left": "Left",
       "right": "Right"
     },
-    "group": "🎃 OVERLAY"
+    "group": "OVERLAY"
   },
   "showHpNumbers": {
     "type": "checkbox",
     "label": "Show HP numbers",
     "value": true,
-    "group": "🎃 OVERLAY"
+    "group": "OVERLAY"
   },
   "showPercentage": {
     "type": "checkbox",
     "label": "Show percentage",
     "value": true,
-    "group": "🎃 OVERLAY"
+    "group": "OVERLAY"
   },
   "reducedMotion": {
     "type": "checkbox",
     "label": "Reduce animations",
     "value": false,
-    "group": "🎃 OVERLAY"
+    "group": "OVERLAY"
   },
   "showDebugPanel": {
     "type": "checkbox",

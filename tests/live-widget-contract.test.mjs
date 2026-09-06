@@ -8,7 +8,7 @@ const testEventDataMigration = new URL("supabase/migrations/202608120002_live_wi
 const testActionFunction = new URL("supabase/functions/widget-test-action/index.ts", root);
 
 async function widgetVariant(name) {
-  const base = new URL(`dist/streamelements/${name}/`, root);
+  const base = new URL(`dist/streamelements/halloween-2026/${name}/`, root);
   const [html, css, js, fields, manifest] = await Promise.all([
     readFile(new URL("html.html", base), "utf8"),
     readFile(new URL("css.css", base), "utf8"),
@@ -27,9 +27,9 @@ test("standalone StreamElements builds contain no local runtime or unresolved mo
     assert.doesNotMatch(all, /localhost|127\.0\.0\.1|file:\/\//i);
     assert.doesNotMatch(all, /\bimport\s|\brequire\s*\(|\bprocess\./);
     assert.doesNotMatch(all, /SUPABASE_SERVICE_ROLE_KEY|TWITCH_CLIENT_SECRET|MINION_PARTICIPANT_PEPPER|sb_secret_/i);
-    assert.match(built.html, /pumpkin-widget/);
-    assert.match(built.html, /boss-artwork/);
-    assert.match(built.js, /bossAsset: "https:\/\//);
+    assert.match(built.html, /event-widget/);
+    assert.match(built.html, /boss-actor/);
+    assert.match(built.js, /"boss":\{[^}]*"asset":\{"type":"static","url":"https:\/\//);
     assert.equal(built.manifest.variant, name);
   }
 });
@@ -41,11 +41,11 @@ test("production fields contain only visual controls while test build exposes do
   assert.equal(production.fields.streamerSlug, undefined);
   assert.equal(production.fields.eventSlug, undefined);
   for (const key of [
-    "testBossHit", "testBossBigHit", "testResetBoss", "testPhase1", "testPhase4",
-    "testSpawnGhost", "testSpawnZombie", "testSpawnSpider", "testSpawnWitch", "testSpawnBats",
-    "testSpawnReaper", "testSpawnHerald", "testForceSuccess", "testForceFailure", "testCancelMinion",
-    "testExpireMinion", "testFog", "testZombieHands", "testSpiderWeb", "testWitchDistortion",
-    "testBatAttack", "testDarkness", "testRoyalCurse", "testRaid", "testHeraldNow", "testPassiveTick",
+    "testBossHit", "testBossBigHit", "testResetBoss", "testPhase_1", "testPhase_4",
+    "testEncounter_ghost", "testEncounter_zombie_horde", "testEncounter_spider_queen", "testEncounter_witch", "testEncounter_bat_swarm",
+    "testEncounter_reaper", "testEncounter_kings_herald", "testForceSuccess", "testForceFailure", "testCancelMinion",
+    "testExpireMinion", "testEffect_fog", "testEffect_zombie_hands", "testEffect_spider_web", "testEffect_witch_distortion",
+    "testEffect_bat_attack", "testEffect_darkness", "testEffect_royal_curse", "testRaid", "testSpecialNow", "testPassiveTick",
   ]) assert.equal(testing.fields[key].type, "button", `${key} should be a StreamElements button field`);
   assert.match(production.js, /eventSlug: "halloween-2026"/);
   assert.match(testing.js, /eventSlug: "halloween-2026-test"/);
@@ -107,7 +107,7 @@ test("real widget lifecycle uses StreamElements events, Supabase Realtime, fallb
   assert.match(testing.css, /@keyframes bats-across-screen/);
   assert.match(testing.js, /renderedMinionSignature/);
   assert.match(testing.js, /actorStates/);
-  assert.match(testing.js, /assetManifest: "https:\/\//);
+  assert.match(testing.js, /assetManifest = \{/);
   assert.match(testing.js, /requestAnimationFrame\(animateActors\)/);
   assert.match(testing.js, /minion-progress/);
 });

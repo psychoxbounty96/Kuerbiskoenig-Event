@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BossAvatar } from "../components/BossAvatar";
 import { BossHealth } from "../components/BossHealth";
-import { DEFAULT_OVERLAY_STREAMER, REFRESH_INTERVAL_MS } from "../lib/config";
+import { ACTIVE_EVENT_PACK, CURSE_TYPES, DEFAULT_OVERLAY_STREAMER, getPackAssetUrl, MINION_TYPES, REFRESH_INTERVAL_MS } from "../lib/config";
 import { getVisibleMinionForStreamer } from "../lib/domain";
 import { formatNumber } from "../lib/format";
 import { stateProvider, useEventData } from "../lib/state-provider";
@@ -16,48 +16,38 @@ import {
 } from "../lib/streamelements-adapter";
 import type { MinionInstance, OverlayIdentityResolution } from "../lib/types";
 
-const MINION_ARTWORK_FOLDERS: Readonly<Record<string, string>> = {
-  ghost: "ghost",
-  zombie_horde: "zombie",
-  spider_queen: "spider",
-  witch: "witch",
-  bat_swarm: "bats",
-  reaper: "reaper",
-  kings_herald: "herald",
-};
-
 function MinionArtwork({ minion }: { minion: MinionInstance }) {
-  const folder = MINION_ARTWORK_FOLDERS[minion.typeId];
-  if (!folder) return <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>;
+  const assetUrl = getPackAssetUrl(MINION_TYPES[minion.typeId]?.asset);
+  if (!assetUrl) return <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>;
   return (
     <span className="minion-artwork" aria-hidden="true">
-      <img src={`${import.meta.env.BASE_URL}assets/minions/${folder}/placeholder.jpg`} alt="" />
+      <img src={assetUrl} alt="" />
     </span>
   );
 }
 
 function RuntimeVisual({ minion, observing }: { minion: MinionInstance; observing: boolean }) {
   const config = minion.runtimeConfig;
-  if (minion.typeId === "zombie_horde") {
+  if (minion.presentation === "direction-choice") {
     return <div className="minion-visual minion-visual--directions" aria-label="Angriffsrichtung">
       {(["links", "mitte", "rechts"] as const).map((direction) => <span key={direction} className={observing && config.visualTarget === direction ? "is-target" : ""}>{direction === "links" ? "←" : direction === "rechts" ? "→" : "↑"}<small>{direction}</small></span>)}
     </div>;
   }
-  if (minion.typeId === "spider_queen") {
+  if (minion.presentation === "numbered-choice") {
     const options = Array.isArray(config.options) ? config.options : [];
     return <div className="minion-visual minion-visual--choices" aria-label="Nummerierte Spinnen">
       {options.map((option) => <span key={String(option)} className={String(config.queenIndex) === String(option) ? "is-target" : ""}>🕷️<b>{String(option)}</b></span>)}
     </div>;
   }
-  if (minion.typeId === "witch") {
+  if (minion.presentation === "question") {
     const labels = config.optionLabels && typeof config.optionLabels === "object" ? config.optionLabels as Record<string, unknown> : {};
     return <div className="minion-question"><strong>{String(config.question ?? "Halloween-Frage")}</strong>{["a", "b", "c"].map((key) => <span key={key}>{key.toUpperCase()} – {String(labels[key] ?? "")}</span>)}</div>;
   }
-  if (minion.typeId === "bat_swarm" && observing) {
+  if (minion.presentation === "count-memory" && observing) {
     const count = Math.max(0, Number(config.count ?? 0));
-    return <div className="minion-visual minion-visual--bats" aria-label={`${count} Fledermäuse`}>{Array.from({ length: count }, (_, index) => <span key={index}>🦇</span>)}</div>;
+    return <div className="minion-visual minion-visual--swarm" aria-label={`${count} Objekte`}>{Array.from({ length: count }, (_, index) => <span key={index}>◆</span>)}</div>;
   }
-  if (minion.typeId === "reaper") {
+  if (minion.presentation === "sequence-memory") {
     const sequence = Array.isArray(config.sequence) ? config.sequence : [];
     const labels = config.optionLabels && typeof config.optionLabels === "object" ? config.optionLabels as Record<string, unknown> : {};
     return observing
@@ -69,7 +59,8 @@ function RuntimeVisual({ minion, observing }: { minion: MinionInstance; observin
 
 function CurseLayer({ minion, phase }: { minion: MinionInstance; phase: number }) {
   if (minion.status !== "curse" || !minion.failureCurseKey) return null;
-  return <div className={`curse-layer curse-layer--${minion.failureCurseKey} curse-phase-${phase}`} aria-label={`Fluch: ${minion.failureCurseKey}`}>
+  const effect = CURSE_TYPES[minion.failureCurseKey];
+  return <div className={`curse-layer curse-layer--${effect?.presentation ?? "generic"} curse-phase-${phase}`} aria-label={`Effekt: ${effect?.name ?? minion.failureCurseKey}`}>
     <div className="curse-vignette" />
     <span className="curse-particle curse-particle--one" />
     <span className="curse-particle curse-particle--two" />
@@ -191,7 +182,7 @@ export default function OverlayPage() {
     return (
       <main className="overlay-page" data-identity-status={identity.status} data-streamer={identity.streamerSlug ?? ""}>
         <section className="overlay-prelaunch">
-          <small>KÜRBISKÖNIG EVENT</small>
+          <small>{ACTIVE_EVENT_PACK.theme.labels.event ?? ACTIVE_EVENT_PACK.name}</small>
           <strong>Overlay erfolgreich verbunden</strong>
           <span>{identity.streamerDisplayName} · Event startet bald</span>
         </section>
@@ -211,7 +202,7 @@ export default function OverlayPage() {
     >
       <section className={`overlay-widget${hit ? " is-hit" : ""}`}>
         <BossAvatar phase={state.boss.phase} hit={hit} compact />
-        <BossHealth boss={state.boss} compact />
+        <BossHealth boss={state.boss} phases={state.phases} compact />
         {displayMode === "paused" && <p className="overlay-pause">Event pausiert · Fortsetzung erfolgt automatisch</p>}
       </section>
 
@@ -246,7 +237,7 @@ export default function OverlayPage() {
               <div>
                 <small>MINION BESIEGT · {minion.streamerName}</small>
                 <h2>{minion.name} besiegt!</h2>
-                <p>Der Kürbiskönig erleidet <strong>{formatNumber(minion.damageAwarded)} Schaden!</strong></p>
+                <p>{state.boss.name} erleidet <strong>{formatNumber(minion.damageAwarded)} Schaden!</strong></p>
               </div>
             </>
           )}

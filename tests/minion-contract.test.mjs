@@ -69,17 +69,16 @@ test("StreamElements widget handles chat, server timestamps, realtime and exact 
   assert.doesNotMatch(source, /damage\s*:/i);
 });
 
-test("all seven minions ship mapped placeholder artwork for Pages and StreamElements", async () => {
+test("pack-defined minions ship mapped artwork for Pages and StreamElements", async () => {
   const source = await readFile(widgetUrl, "utf8");
-  const folders = ["ghost", "zombie", "spider", "witch", "bats", "reaper", "herald"];
-  for (const folder of folders) {
-    const file = new URL(`assets/minions/${folder}/placeholder.jpg`, root);
-    assert.ok((await stat(file)).size > 50_000, `${folder} artwork should be a real image`);
-    assert.match(source, new RegExp(folder));
+  const pack = JSON.parse(await readFile(new URL("event-packs/halloween-2026/pack.json", root), "utf8"));
+  for (const minion of pack.minions) {
+    const file = new URL(`public/event-packs/${pack.key}/${pack.version}/${minion.asset}`, root);
+    assert.ok((await stat(file)).size > 50_000, `${minion.key} artwork should be a real image`);
   }
-  assert.match(source, /WIDGET_CONFIG\.assetBase/);
-  const config = await readFile(new URL("streamelements-widget/public-config.json", root), "utf8");
-  assert.match(config, /psychoxbounty96\.github\.io\/Kuerbiskoenig-Event\/assets\/minions/);
+  assert.match(source, /WIDGET_CONFIG\.pack\.minions/);
+  const config = JSON.parse(await readFile(new URL("streamelements-widget/public-config.json", root), "utf8"));
+  assert.match(config.assetRoot, /^https:\/\//);
   assert.match(source, /function setActor/);
   assert.match(source, /function actorFrame/);
   assert.match(source, /assetManifest/);

@@ -46,7 +46,7 @@ test("public page hides placeholder boss data while loading and after returning 
 test("public page keeps infrastructure and development labels out of visitor copy", async () => {
   const page = await read("app/components/PublicEventPage.tsx");
   assert.doesNotMatch(page, /Live · Supabase|Lokale Mockdaten|Developer Preview|Live Event Engine|v0\.4/);
-  assert.match(page, /globalen Bossfortschritt/);
-  assert.match(page, /PXB Labs/);
+  assert.match(page, /ACTIVE_EVENT_PACK\.website/);
+  assert.match(page, /state\.event\.packKey/);
   assert.doesNotMatch(page, /href=\{liveStreamers\.length \? "#live"/);
 });

@@ -5,7 +5,7 @@ import {
   type Session,
   type SupabaseClient,
 } from "@supabase/supabase-js";
-import { calculateBossPhase, EVENT_SLUG, MINION_TYPES, REFRESH_INTERVAL_MS, RESOLUTION_DISPLAY_MS } from "../config";
+import { ACTIVE_EVENT_PACK, calculateBossPhase, EVENT_SLUG, MINION_TYPES, PHASES, REFRESH_INTERVAL_MS, RESOLUTION_DISPLAY_MS } from "../config";
 import { INITIAL_EVENT_STATE } from "../mock-state";
 import { normalizeTwitchLogin } from "../streamelements-adapter";
 import type {
@@ -82,12 +82,16 @@ function mapPrelaunchSnapshot(payloadValue: unknown): EventState {
     event: {
       id: asString(payload.event_id),
       slug: asString(payload.event_slug, EVENT_SLUG),
-      name: asString(payload.event_name, "Kürbiskönig Community Event"),
+      name: asString(payload.event_name, ACTIVE_EVENT_PACK.name),
       description: "",
       status: "draft",
       active: false,
       isTest: true,
+      packKey: asString(payload.pack_key, ACTIVE_EVENT_PACK.key),
+      packVersion: asString(payload.pack_version, ACTIVE_EVENT_PACK.version),
     },
+    phases: clone(INITIAL_EVENT_STATE.phases),
+    minionDefinitions: clone(INITIAL_EVENT_STATE.minionDefinitions),
     stats: {
       globalDamage: 0,
       minionsDefeated: 0,
@@ -167,11 +171,14 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
     const resolvedAt = toMillis(minion.resolved_at);
     const expiresAt = toMillis(minion.expires_at);
     const rawStatus = asString(minion.status, "active") === "failed" ? "failure" : asString(minion.status, "active");
-    const definition = MINION_TYPES[asString(minion.key, "ghost") as keyof typeof MINION_TYPES] ?? MINION_TYPES.ghost;
+    const definition = MINION_TYPES[asString(minion.key)] ?? {
+      name: asString(minion.name, "Encounter"), icon: asString(minion.icon, "◆"), gameMode: "PARTICIPATION" as const,
+      damageClass: "STANDARD" as const, introTitle: "", gameplayTitle: "", instruction: "", duration: 30, presentation: "participation",
+    };
     return {
       instanceId: asString(minion.id),
       definitionId: asString(minion.definition_id),
-      typeId: asString(minion.key, "ghost"),
+      typeId: asString(minion.key, "encounter"),
       name: asString(minion.name, definition.name),
       icon: asString(minion.icon, definition.icon),
       command: asString(minion.command, "!boss"),
@@ -181,6 +188,7 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
       introTitle: asString(minion.intro_title, definition.introTitle),
       gameplayTitle: asString(minion.gameplay_title, definition.gameplayTitle),
       instruction: asString(minion.instruction, definition.instruction),
+      presentation: asString(minion.presentation, definition.presentation),
       streamerId: asString(minion.streamer_id),
       streamerSlug: asString(minion.streamer_slug),
       streamerName: asString(minion.streamer_name),
@@ -217,15 +225,49 @@ function mapPublicSnapshot(payloadValue: unknown): EventState {
       status: eventStatus,
       active: eventStatus === "active" && !asBoolean(settings.event_paused),
       isTest: eventStatus === "draft" || eventStatus === "testing" || asString(event.slug).endsWith("-test"),
+      packKey: asString(event.pack_key, ACTIVE_EVENT_PACK.key),
+      packVersion: asString(event.pack_version, ACTIVE_EVENT_PACK.version),
     },
     boss: {
       id: asString(boss.id),
-      name: asString(boss.name, "Kürbiskönig"),
+      name: asString(boss.name, ACTIVE_EVENT_PACK.boss.name),
       maxHp,
       currentHp,
       phase: asNumber(serverPhase.phase_number, derivedPhase.id) as EventState["boss"]["phase"],
       phaseName: asString(serverPhase.name, derivedPhase.name),
     },
+    phases: (() => {
+      const rows = asArray(payload.phases);
+      return (rows.length ? rows : PHASES).map((value, index) => {
+        const phase = asRecord(value);
+        return {
+          id: asNumber(phase.phase_number ?? phase.id, index + 1),
+          name: asString(phase.name, `Phase ${index + 1}`),
+          minPercent: asNumber(phase.min_percent ?? phase.minPercent),
+          maxPercent: asNumber(phase.max_percent ?? phase.maxPercent, 100),
+          color: asString(phase.color, "#f28a2e"),
+          sortOrder: asNumber(phase.sort_order ?? phase.sortOrder, index + 1),
+          metadata: asRecord(phase.metadata),
+        };
+      });
+    })(),
+    minionDefinitions: (() => {
+      const rows = asArray(payload.minion_definitions);
+      return (rows.length ? rows : Object.values(MINION_TYPES)).map((value, index) => {
+        const definition = asRecord(value);
+        return {
+          id: asString(definition.id, `definition-${asString(definition.key, `encounter-${index + 1}`)}`),
+          key: asString(definition.key ?? definition.id, `encounter-${index + 1}`),
+          name: asString(definition.name, "Encounter"),
+          icon: asString(definition.icon, "◆"),
+          gameMode: asString(definition.game_mode ?? definition.gameMode, "PARTICIPATION") as EventState["minionDefinitions"][number]["gameMode"],
+          phaseMinimum: asNumber(definition.phase_min ?? definition.phaseMin, 1),
+          damageClass: asString(definition.damage_class ?? definition.damageClass, "STANDARD") as EventState["minionDefinitions"][number]["damageClass"],
+          presentation: asString(definition.presentation, "participation"),
+          enabled: asBoolean(definition.enabled, true),
+        };
+      });
+    })(),
     settings: {
       eventPaused: asBoolean(settings.event_paused),
       damageEnabled: asBoolean(settings.damage_enabled, true),

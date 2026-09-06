@@ -32,8 +32,8 @@ test("builds static admin and overlay entries", async () => {
 
 test("ships website, admin and overlay application code in the static bundle", async () => {
   const bundle = await readApplicationBundle();
-  assert.match(bundle, /Die Raid-Party/);
-  assert.match(bundle, /Der Weg zum Thron/);
+  assert.match(bundle, /GEMEINSAMES COMMUNITY EVENT/);
+  assert.match(bundle, /TEILNEHMENDE COMMUNITIES/);
   assert.match(bundle, /Minion Debugger/);
   assert.match(bundle, /Overlay erfolgreich verbunden/);
   assert.match(bundle, /Simulate Raid/);

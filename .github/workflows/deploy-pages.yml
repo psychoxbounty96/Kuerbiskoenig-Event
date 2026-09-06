@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_DATA_PROVIDER: supabase
+      VITE_EVENT_PACK_KEY: ${{ vars.EVENT_PACK_KEY || 'halloween-2026' }}
       VITE_EVENT_SLUG: ${{ vars.EVENT_SLUG }}
       VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}

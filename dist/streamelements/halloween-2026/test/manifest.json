@@ -1,7 +1,11 @@
 {
   "format": "streamelements-custom-widget",
-  "version": 2,
-  "buildVersion": "0.5.0",
+  "version": 3,
+  "buildVersion": "1.0.0",
+  "pack": {
+    "key": "halloween-2026",
+    "version": "1.0.0"
+  },
   "variant": "test",
   "eventSlug": "halloween-2026-test",
   "testControls": true,

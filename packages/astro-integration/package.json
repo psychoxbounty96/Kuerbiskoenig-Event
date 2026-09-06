@@ -1,0 +1,10 @@
+{
+  "name": "@pxb/event-engine-astro",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "exports": "./src/index.ts",
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  }
+}

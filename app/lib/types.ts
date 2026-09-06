@@ -1,4 +1,4 @@
-export type BossPhaseId = 1 | 2 | 3 | 4;
+export type BossPhaseId = number;
 export type ProviderMode = "mock" | "supabase";
 export type ProviderStatus = "loading" | "ready" | "degraded" | "error";
 export type EventStatus = "draft" | "testing" | "active" | "paused" | "finished" | "archived";
@@ -13,7 +13,7 @@ export type MinionStatus =
   | "cancelled"
   | "expired";
 export type MinionGameMode = "PARTICIPATION" | "VOTE" | "VISUAL_CHOICE" | "MEMORY";
-export type MinionDamageClass = "STANDARD" | "HIGH" | "ELITE" | "SPECIAL";
+export type MinionDamageClass = string;
 export type MinionTriggerSource = "scheduler" | "raid" | "admin" | "manual_test";
 export type AdminRole = "owner" | "admin" | "operator" | "viewer";
 export type TwitchHealthStatus = "healthy" | "warning" | "error";
@@ -107,6 +107,7 @@ export interface MinionInstance {
   introTitle: string;
   gameplayTitle: string;
   instruction: string;
+  presentation?: string;
   streamerId: string;
   streamerSlug: string;
   streamerName: string;
@@ -283,6 +284,8 @@ export interface EventState {
     status: EventStatus;
     active: boolean;
     isTest: boolean;
+    packKey: string;
+    packVersion: string;
   };
   boss: {
     id: string;
@@ -292,6 +295,26 @@ export interface EventState {
     phase: BossPhaseId;
     phaseName: string;
   };
+  phases: Array<{
+    id: number;
+    name: string;
+    minPercent: number;
+    maxPercent: number;
+    color: string;
+    sortOrder: number;
+    metadata: Record<string, unknown>;
+  }>;
+  minionDefinitions: Array<{
+    id: string;
+    key: string;
+    name: string;
+    icon: string;
+    gameMode: MinionGameMode;
+    phaseMinimum: number;
+    damageClass: MinionDamageClass;
+    presentation: string;
+    enabled: boolean;
+  }>;
   settings: EventSettingsState;
   stats: {
     globalDamage: number;

@@ -1,0 +1,812 @@
+/* global {"schemaVersion":1,"key":"halloween-2026","version":"1.0.0","name":"Kürbiskönig Community Boss Event","theme":{"className":"theme-halloween-2026","colors":{"primary":"#f28a2e","secondary":"#7f75e9","accent":"#c878f2","surface":"#120d18","text":"#fff4dc"},"labels":{"event":"KÜRBISKÖNIG EVENT","boss":"GLOBALER BOSS","prelaunch":"Event startet bald","paused":"Das Event pausiert"}},"boss":{"name":"Kürbiskönig","defaultMaxHp":10000000,"asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png"},"phases":[{"id":1,"name":"Das Erwachen","minPercent":75,"maxPercent":100,"color":"#d8a35d","spawnWindowMinutes":[45,60],"intensity":0.7},{"id":2,"name":"Der Fluch","minPercent":50,"maxPercent":75,"color":"#c878f2","spawnWindowMinutes":[40,55],"intensity":0.85},{"id":3,"name":"Die Dunkelheit","minPercent":25,"maxPercent":50,"color":"#7f75e9","spawnWindowMinutes":[35,50],"intensity":1},{"id":4,"name":"Der Untergang","minPercent":0,"maxPercent":25,"color":"#e65333","spawnWindowMinutes":[30,45],"intensity":1.1}],"milestones":[{"percent":75,"label":"Phase II","description":"Der Fluch beginnt"},{"percent":50,"label":"Phase III","description":"Die Dunkelheit bricht herein"},{"percent":25,"label":"Phase IV","description":"Der Untergang naht"},{"percent":10,"label":"Finale Warnung","description":"Der Kürbiskönig steht kurz vor dem Fall"}]},"minions":[{"key":"ghost","name":"Rastloser Geist","icon":"👻","command":"!boss","presentation":"participation","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/ghost/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/ghost/placeholder.jpg"}},{"key":"zombie_horde","name":"Zombiehorde","icon":"🧟","command":"!boss","presentation":"direction-choice","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/zombie/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/zombie/placeholder.jpg"}},{"key":"spider_queen","name":"Spinnenkönigin","icon":"🕷️","command":"!boss","presentation":"numbered-choice","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/spider/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/spider/placeholder.jpg"}},{"key":"witch","name":"Die Hexe","icon":"🧙","command":"!boss","presentation":"question","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/witch/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/witch/placeholder.jpg"}},{"key":"bat_swarm","name":"Fledermausschwarm","icon":"🦇","command":"!boss","presentation":"count-memory","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/bats/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/bats/placeholder.jpg"}},{"key":"reaper","name":"Der Sensenmann","icon":"💀","command":"!boss","presentation":"sequence-memory","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/reaper/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/reaper/placeholder.jpg"}},{"key":"kings_herald","name":"Herold des Königs","icon":"👑","command":"!boss","presentation":"participation","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/herald/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/herald/placeholder.jpg"}}],"effects":[{"key":"fog","name":"Geisternebel","durationMs":12000,"presentation":"fog","asset":null},{"key":"zombie_hands","name":"Zombiehände","durationMs":10000,"presentation":"edge-hands","asset":null},{"key":"spider_web","name":"Spinnenbefall","durationMs":12000,"presentation":"edge-web","asset":null},{"key":"witch_distortion","name":"Hexenfluch","durationMs":11000,"presentation":"color-distortion","asset":null},{"key":"bat_attack","name":"Fledermausangriff","durationMs":10000,"presentation":"flying-swarm","asset":null},{"key":"darkness","name":"Dunkelheit","durationMs":10000,"presentation":"dark-vignette","asset":null},{"key":"royal_curse","name":"Königlicher Fluch","durationMs":12000,"presentation":"royal-vignette","asset":null}]}, {"testReloadState":{"action":"reload_state"},"testRunTick":{"action":"tick"},"testViewerSample":{"action":"create_test_viewer_sample"},"testPassiveTick":{"action":"test_passive_tick"},"testBossHit":{"action":"test_boss_hit"},"testBossBigHit":{"action":"test_boss_big_hit"},"testResetBoss":{"action":"reset_test_boss"},"testForceSuccess":{"action":"force_minion_success"},"testForceFailure":{"action":"force_minion_failure"},"testCancelMinion":{"action":"cancel_minion"},"testExpireMinion":{"action":"expire_minion"},"testRaid":{"action":"simulate_eligible_raid"},"testSpecialNow":{"action":"spawn_raid_special_now"},"testPhase_1":{"action":"set_phase","phaseId":1},"testPhase_2":{"action":"set_phase","phaseId":2},"testPhase_3":{"action":"set_phase","phaseId":3},"testPhase_4":{"action":"set_phase","phaseId":4},"testEncounter_ghost":{"action":"spawn_minion","definitionKey":"ghost"},"testEncounter_zombie_horde":{"action":"spawn_minion","definitionKey":"zombie_horde"},"testEncounter_spider_queen":{"action":"spawn_minion","definitionKey":"spider_queen"},"testEncounter_witch":{"action":"spawn_minion","definitionKey":"witch"},"testEncounter_bat_swarm":{"action":"spawn_minion","definitionKey":"bat_swarm"},"testEncounter_reaper":{"action":"spawn_minion","definitionKey":"reaper"},"testEncounter_kings_herald":{"action":"spawn_minion","definitionKey":"kings_herald"},"testEffect_fog":{"action":"test_effect","effectKey":"fog"},"testEffect_zombie_hands":{"action":"test_effect","effectKey":"zombie_hands"},"testEffect_spider_web":{"action":"test_effect","effectKey":"spider_web"},"testEffect_witch_distortion":{"action":"test_effect","effectKey":"witch_distortion"},"testEffect_bat_attack":{"action":"test_effect","effectKey":"bat_attack"},"testEffect_darkness":{"action":"test_effect","effectKey":"darkness"},"testEffect_royal_curse":{"action":"test_effect","effectKey":"royal_curse"}} */
+// Values between __...__ are replaced by `npm run build:widget`.
+const WIDGET_CONFIG = Object.freeze({
+  supabaseUrl: "https://xydyeibmbxoaeyxocyoa.supabase.co",
+  publishableKey: "sb_publishable_QRpIf8Mog4awVvcQsFQI0Q_RuOMqNhj",
+  eventSlug: "halloween-2026-test",
+  pack: {"schemaVersion":1,"key":"halloween-2026","version":"1.0.0","name":"Kürbiskönig Community Boss Event","theme":{"className":"theme-halloween-2026","colors":{"primary":"#f28a2e","secondary":"#7f75e9","accent":"#c878f2","surface":"#120d18","text":"#fff4dc"},"labels":{"event":"KÜRBISKÖNIG EVENT","boss":"GLOBALER BOSS","prelaunch":"Event startet bald","paused":"Das Event pausiert"}},"boss":{"name":"Kürbiskönig","defaultMaxHp":10000000,"asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png"},"phases":[{"id":1,"name":"Das Erwachen","minPercent":75,"maxPercent":100,"color":"#d8a35d","spawnWindowMinutes":[45,60],"intensity":0.7},{"id":2,"name":"Der Fluch","minPercent":50,"maxPercent":75,"color":"#c878f2","spawnWindowMinutes":[40,55],"intensity":0.85},{"id":3,"name":"Die Dunkelheit","minPercent":25,"maxPercent":50,"color":"#7f75e9","spawnWindowMinutes":[35,50],"intensity":1},{"id":4,"name":"Der Untergang","minPercent":0,"maxPercent":25,"color":"#e65333","spawnWindowMinutes":[30,45],"intensity":1.1}],"milestones":[{"percent":75,"label":"Phase II","description":"Der Fluch beginnt"},{"percent":50,"label":"Phase III","description":"Die Dunkelheit bricht herein"},{"percent":25,"label":"Phase IV","description":"Der Untergang naht"},{"percent":10,"label":"Finale Warnung","description":"Der Kürbiskönig steht kurz vor dem Fall"}]},"minions":[{"key":"ghost","name":"Rastloser Geist","icon":"👻","command":"!boss","presentation":"participation","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/ghost/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/ghost/placeholder.jpg"}},{"key":"zombie_horde","name":"Zombiehorde","icon":"🧟","command":"!boss","presentation":"direction-choice","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/zombie/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/zombie/placeholder.jpg"}},{"key":"spider_queen","name":"Spinnenkönigin","icon":"🕷️","command":"!boss","presentation":"numbered-choice","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/spider/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/spider/placeholder.jpg"}},{"key":"witch","name":"Die Hexe","icon":"🧙","command":"!boss","presentation":"question","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/witch/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/witch/placeholder.jpg"}},{"key":"bat_swarm","name":"Fledermausschwarm","icon":"🦇","command":"!boss","presentation":"count-memory","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/bats/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/bats/placeholder.jpg"}},{"key":"reaper","name":"Der Sensenmann","icon":"💀","command":"!boss","presentation":"sequence-memory","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/reaper/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/reaper/placeholder.jpg"}},{"key":"kings_herald","name":"Herold des Königs","icon":"👑","command":"!boss","presentation":"participation","asset":{"type":"static","url":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/herald/placeholder.jpg","fallbackUrl":"https://psychoxbounty96.github.io/pxb-community-event-engine/event-packs/halloween-2026/1.0.0/assets/minions/herald/placeholder.jpg"}}],"effects":[{"key":"fog","name":"Geisternebel","durationMs":12000,"presentation":"fog","asset":null},{"key":"zombie_hands","name":"Zombiehände","durationMs":10000,"presentation":"edge-hands","asset":null},{"key":"spider_web","name":"Spinnenbefall","durationMs":12000,"presentation":"edge-web","asset":null},{"key":"witch_distortion","name":"Hexenfluch","durationMs":11000,"presentation":"color-distortion","asset":null},{"key":"bat_attack","name":"Fledermausangriff","durationMs":10000,"presentation":"flying-swarm","asset":null},{"key":"darkness","name":"Dunkelheit","durationMs":10000,"presentation":"dark-vignette","asset":null},{"key":"royal_curse","name":"Königlicher Fluch","durationMs":12000,"presentation":"royal-vignette","asset":null}]},
+  buttonActions: {"testReloadState":{"action":"reload_state"},"testRunTick":{"action":"tick"},"testViewerSample":{"action":"create_test_viewer_sample"},"testPassiveTick":{"action":"test_passive_tick"},"testBossHit":{"action":"test_boss_hit"},"testBossBigHit":{"action":"test_boss_big_hit"},"testResetBoss":{"action":"reset_test_boss"},"testForceSuccess":{"action":"force_minion_success"},"testForceFailure":{"action":"force_minion_failure"},"testCancelMinion":{"action":"cancel_minion"},"testExpireMinion":{"action":"expire_minion"},"testRaid":{"action":"simulate_eligible_raid"},"testSpecialNow":{"action":"spawn_raid_special_now"},"testPhase_1":{"action":"set_phase","phaseId":1},"testPhase_2":{"action":"set_phase","phaseId":2},"testPhase_3":{"action":"set_phase","phaseId":3},"testPhase_4":{"action":"set_phase","phaseId":4},"testEncounter_ghost":{"action":"spawn_minion","definitionKey":"ghost"},"testEncounter_zombie_horde":{"action":"spawn_minion","definitionKey":"zombie_horde"},"testEncounter_spider_queen":{"action":"spawn_minion","definitionKey":"spider_queen"},"testEncounter_witch":{"action":"spawn_minion","definitionKey":"witch"},"testEncounter_bat_swarm":{"action":"spawn_minion","definitionKey":"bat_swarm"},"testEncounter_reaper":{"action":"spawn_minion","definitionKey":"reaper"},"testEncounter_kings_herald":{"action":"spawn_minion","definitionKey":"kings_herald"},"testEffect_fog":{"action":"test_effect","effectKey":"fog"},"testEffect_zombie_hands":{"action":"test_effect","effectKey":"zombie_hands"},"testEffect_spider_web":{"action":"test_effect","effectKey":"spider_web"},"testEffect_witch_distortion":{"action":"test_effect","effectKey":"witch_distortion"},"testEffect_bat_attack":{"action":"test_effect","effectKey":"bat_attack"},"testEffect_darkness":{"action":"test_effect","effectKey":"darkness"},"testEffect_royal_curse":{"action":"test_effect","effectKey":"royal_curse"}},
+  buildVersion: "1.0.0",
+  testControls: "true" === "true",
+});
+
+const FALLBACK_REFRESH_MS = 5_000;
+const ACTIVE_TEST_TICK_MS = 2_000;
+const IDLE_TEST_TICK_MS = 10_000;
+const BUTTON_ACTIONS = Object.freeze(WIDGET_CONFIG.buttonActions || {});
+
+const IDENTITY_STATUSES = new Set(["resolved", "not_registered", "disabled", "event_unavailable", "error"]);
+const OPEN_MINION_STATUSES = new Set(["intro", "active", "success", "failure", "curse"]);
+let identity = createIdentity("loading");
+let channelUsername = "";
+let fieldData = {};
+let lastSafeState = null;
+let lastSyncAt = null;
+let lastTestTickAt = 0;
+let refreshTimer = null;
+let clockTimer = null;
+let testTickTimer = null;
+let realtimeChannel = null;
+let supabaseClient = null;
+let refreshInFlight = false;
+let refreshQueued = false;
+let editorMode = false;
+let realtimeStatus = "disconnected";
+let supabaseStatus = "disconnected";
+let localCurse = null;
+let localCurseTimer = null;
+let lastTestMessage = "";
+let renderedMinionSignature = "";
+let assetManifest = null;
+let animationFrame = null;
+let previousBossHp = null;
+let previousBossPhase = null;
+let bossTransitionTimer = null;
+const actorStates = new Map();
+
+function normalizeTwitchLogin(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function createIdentity(status, payload = {}) {
+  return {
+    status,
+    channelUsername: payload.channel_username || null,
+    eventId: payload.event_id || null,
+    eventSlug: payload.event_slug || WIDGET_CONFIG.eventSlug,
+    eventStatus: payload.event_status || null,
+    streamerId: payload.streamer_id || null,
+    streamerSlug: payload.streamer_slug || null,
+    streamerDisplayName: payload.streamer_display_name || null,
+    isTestAccount: Boolean(payload.is_test_account),
+    testActionsAuthorized: Boolean(payload.test_actions_authorized),
+  };
+}
+
+function number(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function milliseconds(value) {
+  const parsed = Date.parse(value || "");
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function safeDebug(message, detail) {
+  if (typeof console !== "undefined" && typeof console.debug === "function") {
+    console.debug(`[${WIDGET_CONFIG.pack.name}] ${message}`, detail || "");
+  }
+}
+
+function validAsset(asset) {
+  if (!asset || !["static", "spritesheet", "css"].includes(asset.type)) return false;
+  if (asset.type === "css") return true;
+  if (typeof asset.url !== "string" || !asset.url.startsWith("https://")) return false;
+  if (asset.type === "static") return true;
+  const columns = Math.floor(number(asset.columns));
+  const rows = Math.floor(number(asset.rows));
+  const frameCount = Math.floor(number(asset.frameCount || columns * rows));
+  return columns > 0 && rows > 0 && frameCount > 0;
+}
+
+async function loadAssetManifest() {
+  assetManifest = {
+    version: WIDGET_CONFIG.pack.version,
+    boss: WIDGET_CONFIG.pack.boss.asset,
+    minions: Object.fromEntries(WIDGET_CONFIG.pack.minions.map((minion) => [minion.key, minion.asset])),
+    curses: Object.fromEntries(WIDGET_CONFIG.pack.effects.map((effect) => [effect.key, effect.asset || { type: "css" }])),
+  };
+  const urls = [assetManifest.boss, ...Object.values(assetManifest.minions), ...Object.values(assetManifest.curses)]
+    .flatMap((asset) => [asset?.url, asset?.fallbackUrl])
+    .filter((url) => typeof url === "string" && url.startsWith("https://"));
+  for (const url of new Set(urls)) {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+  }
+  safeDebug("Pack-Assets geladen", { pack: WIDGET_CONFIG.pack.key, version: WIDGET_CONFIG.pack.version });
+}
+
+function packMinion(key) {
+  return WIDGET_CONFIG.pack.minions.find((minion) => minion.key === key) || null;
+}
+
+function packEffect(key) {
+  return WIDGET_CONFIG.pack.effects.find((effect) => effect.key === key) || null;
+}
+
+function minionPresentation(minion) {
+  return String(minion?.presentation || packMinion(minion?.key)?.presentation || "participation");
+}
+
+function actorAsset(kind, key) {
+  if (kind === "boss") {
+    const boss = assetManifest?.boss;
+    const resolved = boss ? { ...boss, clips: boss.clips || assetManifest?.clipProfiles?.[boss.profile] } : null;
+    return validAsset(resolved) ? resolved : { type: "css" };
+  }
+  const candidate = kind === "minion" ? assetManifest?.minions?.[key] : assetManifest?.curses?.[key];
+  const resolved = candidate ? { ...candidate, clips: candidate.clips || assetManifest?.clipProfiles?.[candidate.profile] } : null;
+  if (validAsset(resolved)) return resolved;
+  if (kind === "minion") return { type: "css" };
+  return { type: "css" };
+}
+
+function actorFrame(asset, clipName, elapsedMs) {
+  const columns = Math.max(1, Math.floor(number(asset.columns || 1)));
+  const rows = Math.max(1, Math.floor(number(asset.rows || 1)));
+  const totalFrames = Math.max(1, Math.floor(number(asset.frameCount || columns * rows)));
+  const clip = asset.clips?.[clipName] || asset.clips?.idle || { startFrame: 0, frameCount: totalFrames, fps: 8, loop: true };
+  const start = Math.min(totalFrames - 1, Math.max(0, Math.floor(number(clip.startFrame))));
+  const count = Math.min(totalFrames - start, Math.max(1, Math.floor(number(clip.frameCount || 1))));
+  const frameDuration = 1_000 / Math.min(60, Math.max(1, number(clip.fps || 8)));
+  const rawOffset = fieldData.reducedMotion ? 0 : Math.floor(Math.max(0, elapsedMs) / frameDuration);
+  const complete = !clip.loop && rawOffset >= count;
+  const offset = clip.loop ? rawOffset % count : Math.min(count - 1, rawOffset);
+  const frame = start + offset;
+  return { column: frame % columns, row: Math.floor(frame / columns), columns, rows, complete, next: complete ? clip.next : null };
+}
+
+function showActorFallback(root, symbol) {
+  if (!root) return;
+  root.dataset.actorState = "fallback";
+  const fallback = root.querySelector(".sprite-actor__fallback");
+  if (fallback) fallback.textContent = symbol || "";
+}
+
+function setActor(id, kind, key, clipName, symbol) {
+  const root = document.getElementById(id);
+  if (!root) return;
+  const asset = actorAsset(kind, key);
+  const signature = `${kind}:${key}:${asset.type}:${asset.url || "css"}`;
+  const previous = actorStates.get(id);
+  const requestedClip = clipName || "idle";
+  const next = previous?.signature === signature ? previous : {
+    root, asset, signature, clip: requestedClip, startedAt: performance.now(), symbol: symbol || "", ready: false, loading: false,
+  };
+  next.root = root;
+  next.asset = asset;
+  next.symbol = symbol || "";
+  if (next.clip !== requestedClip) {
+    next.clip = requestedClip;
+    next.startedAt = performance.now();
+  }
+  actorStates.set(id, next);
+  root.dataset.actorKey = key || "none";
+  root.dataset.actorClip = next.clip;
+  root.style.setProperty("--actor-scale", String(Math.max(0.1, Math.min(4, number(asset.scale || 1)))));
+  root.style.setProperty("--actor-anchor-x", `${Math.min(100, number(asset.anchor?.x ?? 50))}%`);
+  root.style.setProperty("--actor-anchor-y", `${Math.min(100, number(asset.anchor?.y ?? 50))}%`);
+  const image = root.querySelector(".sprite-actor__image");
+  const sheet = root.querySelector(".sprite-actor__sheet");
+  if (asset.type === "css") {
+    root.dataset.actorState = "css";
+    return;
+  }
+  if (!asset.url) {
+    showActorFallback(root, symbol);
+    return;
+  }
+  if (asset.type === "static") {
+    if (sheet) sheet.hidden = true;
+    if (image) {
+      image.hidden = false;
+      if (image.dataset.src !== asset.url) {
+        root.dataset.actorState = "loading";
+        image.dataset.src = asset.url;
+        image.onload = () => { next.ready = true; root.dataset.actorState = "ready"; };
+        image.onerror = () => {
+          if (asset.fallbackUrl && image.dataset.src !== asset.fallbackUrl) {
+            image.dataset.src = asset.fallbackUrl;
+            image.src = asset.fallbackUrl;
+            return;
+          }
+          image.hidden = true;
+          showActorFallback(root, symbol);
+        };
+        image.src = asset.url;
+      }
+    }
+    return;
+  }
+  if (image) image.hidden = true;
+  if (sheet) {
+    if (next.ready) {
+      sheet.hidden = false;
+      root.dataset.actorState = "ready";
+    } else if (!next.loading) {
+      next.loading = true;
+      sheet.hidden = true;
+      root.dataset.actorState = "loading";
+      const probe = new Image();
+      probe.onload = () => {
+        if (actorStates.get(id) !== next) return;
+        next.loading = false;
+        next.ready = true;
+        sheet.style.backgroundImage = `url("${asset.url}")`;
+        sheet.style.backgroundSize = `${Math.max(1, number(asset.columns)) * 100}% ${Math.max(1, number(asset.rows)) * 100}%`;
+        sheet.hidden = false;
+        root.dataset.actorState = "ready";
+      };
+      probe.onerror = () => {
+        if (actorStates.get(id) !== next) return;
+        next.loading = false;
+        if (asset.fallbackUrl && image) {
+          image.hidden = false;
+          image.onload = () => { root.dataset.actorState = "ready"; };
+          image.onerror = () => showActorFallback(root, symbol);
+          image.src = asset.fallbackUrl;
+        } else showActorFallback(root, symbol);
+      };
+      probe.src = asset.url;
+    }
+  }
+}
+
+function animateActors(now) {
+  for (const state of actorStates.values()) {
+    if (state.asset.type !== "spritesheet") continue;
+    const sheet = state.root.querySelector(".sprite-actor__sheet");
+    if (!sheet) continue;
+    const frame = actorFrame(state.asset, state.clip, now - state.startedAt);
+    const x = frame.columns === 1 ? 0 : frame.column / (frame.columns - 1) * 100;
+    const y = frame.rows === 1 ? 0 : frame.row / (frame.rows - 1) * 100;
+    sheet.style.backgroundPosition = `${x}% ${y}%`;
+    if (frame.complete && frame.next && frame.next !== state.clip) {
+      state.clip = frame.next;
+      state.startedAt = now;
+      state.root.dataset.actorClip = frame.next;
+    }
+  }
+  animationFrame = window.requestAnimationFrame(animateActors);
+}
+
+function startActorEngine() {
+  if (document.hidden) return;
+  if (animationFrame !== null) return;
+  animationFrame = window.requestAnimationFrame(animateActors);
+}
+
+function stopActorEngine() {
+  if (animationFrame === null) return;
+  window.cancelAnimationFrame(animationFrame);
+  animationFrame = null;
+}
+
+function setIdentity(next) {
+  identity = next;
+  document.getElementById("event-widget").dataset.identityStatus = next.status;
+  updateDiagnostics();
+}
+
+function applyVisualFields() {
+  const scale = Math.max(50, Math.min(150, number(fieldData.overlayScale || 100)));
+  const alignment = ["left", "right"].includes(fieldData.alignment) ? fieldData.alignment : "left";
+  const widget = document.getElementById("event-widget");
+  widget.style.setProperty("--widget-scale", String(scale / 100));
+  widget.dataset.alignment = alignment;
+  widget.classList.toggle("reduced-motion", Boolean(fieldData.reducedMotion));
+  widget.classList.add(WIDGET_CONFIG.pack.theme.className);
+  for (const [name, value] of Object.entries(WIDGET_CONFIG.pack.theme.colors || {})) {
+    widget.style.setProperty(`--pack-${name}`, String(value));
+  }
+  document.getElementById("event-label").textContent = WIDGET_CONFIG.pack.theme.labels.event || WIDGET_CONFIG.pack.name;
+  document.getElementById("boss-label").textContent = WIDGET_CONFIG.pack.theme.labels.boss || "GLOBALER BOSS";
+  setActor("boss-actor", "boss", "boss", "idle", "◆");
+}
+
+function diagnosticsVisible() {
+  return editorMode && Boolean(fieldData.showDebugPanel);
+}
+
+function updateDiagnostics() {
+  const panel = document.getElementById("debug-panel");
+  if (!panel) return;
+  panel.hidden = !diagnosticsVisible();
+  if (panel.hidden) return;
+  const active = currentMinion(lastSafeState);
+  const values = {
+    "debug-channel": channelUsername || "fehlt",
+    "debug-streamer": identity.status === "resolved" ? `${identity.streamerDisplayName} (resolved)` : identity.status,
+    "debug-event": `${identity.eventSlug || WIDGET_CONFIG.eventSlug}${identity.eventStatus ? ` · ${identity.eventStatus}` : ""}`,
+    "debug-supabase": supabaseStatus,
+    "debug-realtime": realtimeStatus === "subscribed" ? "connected" : `${realtimeStatus} · Fallback aktiv`,
+    "debug-boss": lastSafeState?.boss?.id ? "loaded" : "not loaded",
+    "debug-minion": active ? `${active.key} · ${active.status}` : "none",
+    "debug-sync": lastSyncAt ? new Date(lastSyncAt).toLocaleTimeString("de-DE") : "never",
+    "debug-build": WIDGET_CONFIG.buildVersion,
+    "debug-assets": assetManifest ? `manifest v${assetManifest.version}` : "HTTPS-Fallback",
+    "debug-action": lastTestMessage || "none",
+  };
+  for (const [id, value] of Object.entries(values)) {
+    const node = document.getElementById(id);
+    if (node) node.textContent = value;
+  }
+}
+
+function hideOverlay(status) {
+  setIdentity({ ...identity, status });
+  const widget = document.getElementById("event-widget");
+  widget.hidden = !diagnosticsVisible();
+  document.getElementById("identity-card").hidden = true;
+  document.getElementById("boss-card").hidden = true;
+  document.getElementById("minion-card").hidden = true;
+  if (!localCurse) document.getElementById("curse-layer").hidden = true;
+}
+
+function showIdentityMessage(title, detail) {
+  if (!diagnosticsVisible()) {
+    hideOverlay(identity.status);
+    return;
+  }
+  const widget = document.getElementById("event-widget");
+  widget.hidden = false;
+  document.getElementById("boss-card").hidden = true;
+  document.getElementById("minion-card").hidden = true;
+  document.getElementById("identity-card").hidden = false;
+  document.getElementById("identity-title").textContent = title;
+  document.getElementById("identity-detail").textContent = detail;
+}
+
+async function rpc(name, body) {
+  const response = await fetch(`${WIDGET_CONFIG.supabaseUrl}/rest/v1/rpc/${name}`, {
+    method: "POST",
+    headers: {
+      apikey: WIDGET_CONFIG.publishableKey,
+      Authorization: `Bearer ${WIDGET_CONFIG.publishableKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`widget_rpc_${name}_failed_${response.status}`);
+  supabaseStatus = "connected";
+  return response.json();
+}
+
+async function resolveIdentity() {
+  const normalized = normalizeTwitchLogin(channelUsername);
+  if (!normalized) return createIdentity("error", { event_slug: WIDGET_CONFIG.eventSlug });
+  const payload = await rpc("resolve_stream_elements_identity", {
+    p_event_slug: WIDGET_CONFIG.eventSlug,
+    p_twitch_login: normalized,
+  });
+  return createIdentity(IDENTITY_STATUSES.has(payload?.status) ? payload.status : "error", payload || {});
+}
+
+function renderPreLaunch() {
+  showIdentityMessage("Overlay erfolgreich verbunden", `${identity.streamerDisplayName || identity.channelUsername} · ${WIDGET_CONFIG.pack.theme.labels.prelaunch || "Event startet bald"}`);
+}
+
+function currentMinion(state) {
+  return (state?.minions || []).find((item) => item.streamer_id === identity.streamerId && OPEN_MINION_STATUSES.has(item.status)) || null;
+}
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function setMinionActor(minion) {
+  const clip = minion.status === "active"
+    ? (Date.now() < milliseconds(minion.accepts_answers_at) ? "observe" : "active")
+    : minion.status;
+  setActor("minion-actor", "minion", minion.key, clip, minion.icon || "◆");
+}
+function renderVisual(minion, observing) {
+  const config = minion.runtime_config || {};
+  const box = element("div", "minion-visual");
+  const presentation = minionPresentation(minion);
+  if (presentation === "direction-choice") {
+    const options = config.options || [];
+    const target = config.visual_target || config.visualTarget;
+    for (const direction of options) {
+      const item = element("span", observing && target === direction ? "is-target" : "", direction === "links" ? "←" : direction === "rechts" ? "→" : "↑");
+      item.append(element("em", "", direction));
+      box.append(item);
+    }
+    return box;
+  }
+  if (presentation === "numbered-choice") {
+    const target = config.target_index || config.targetIndex || config.queen_index || config.queenIndex;
+    for (const option of config.options || []) {
+      const item = element("span", observing && String(target) === String(option) ? "is-target" : "", minion.icon || "◆");
+      item.append(element("b", "", String(option)));
+      box.append(item);
+    }
+    return box;
+  }
+  if (presentation === "count-memory" && observing) {
+    box.classList.add("minion-visual--swarm");
+    for (let index = 0; index < number(config.count); index += 1) box.append(element("span", "", minion.icon || "◆"));
+    return box;
+  }
+  if (presentation === "sequence-memory" && observing) {
+    for (const item of config.sequence || []) box.append(element("span", "", String(item)));
+    return box;
+  }
+  if (presentation === "question" || presentation === "sequence-memory") {
+    const question = element("div", "minion-question");
+    if (config.question) question.append(element("strong", "", String(config.question)));
+    const labels = config.option_labels || config.optionLabels || {};
+    for (const key of config.options || Object.keys(labels)) question.append(element("span", "", `${String(key).toUpperCase()} – ${String(labels[key] || "")}`));
+    return question;
+  }
+  return null;
+}
+
+function renderCurse(minion) {
+  const curseKey = localCurse?.key || (minion?.status === "curse" ? minion.failure_curse_key : null);
+  const layer = document.getElementById("curse-layer");
+  if (!curseKey) {
+    layer.hidden = true;
+    layer.className = "curse-layer";
+    actorStates.delete("curse-actor");
+    return;
+  }
+  layer.hidden = false;
+  const presentation = packEffect(curseKey)?.presentation || "generic-vignette";
+  layer.className = `curse-layer curse-layer--${presentation}`;
+  const current = actorStates.get("curse-actor");
+  const clip = current?.root?.dataset?.actorKey === curseKey ? current.clip : "enter";
+  setActor("curse-actor", "curse", curseKey, clip, "");
+}
+
+function renderMinion(minion) {
+  const card = document.getElementById("minion-card");
+  if (!minion) {
+    card.hidden = true;
+    card.dataset.minion = "none";
+    renderedMinionSignature = "";
+    renderCurse(null);
+    return;
+  }
+  renderCurse(minion);
+  card.hidden = false;
+  card.className = `minion-card minion-card--${minion.status}`;
+  card.dataset.minion = minion.key;
+  const now = Date.now();
+  const observing = minion.status === "active" && now < milliseconds(minion.accepts_answers_at);
+  setMinionActor(minion);
+  const kicker = document.getElementById("minion-kicker");
+  const title = document.getElementById("minion-title");
+  const visualSlot = document.getElementById("minion-visual");
+  const instruction = document.getElementById("minion-instruction");
+  const progress = document.getElementById("minion-progress");
+  const result = document.getElementById("minion-result");
+  const timer = document.getElementById("minion-timer");
+  const signature = [
+    minion.id,
+    minion.status,
+    observing,
+    number(minion.required_participants),
+    number(minion.damage_awarded),
+    JSON.stringify(minion.runtime_config || {}),
+  ].join("|");
+  if (signature === renderedMinionSignature) {
+    if (progress) progress.textContent = `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`;
+    if (timer && minion.status === "active" && !observing) {
+      const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
+      timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+    }
+    return;
+  }
+  renderedMinionSignature = signature;
+  visualSlot.replaceChildren();
+  visualSlot.hidden = true;
+  instruction.hidden = true;
+  progress.hidden = true;
+  result.hidden = true;
+  timer.hidden = true;
+  if (minion.status === "intro") {
+    kicker.textContent = `MINION-ALARM · ${identity.streamerDisplayName}`;
+    title.textContent = minion.intro_title || minion.name;
+    return;
+  }
+  if (minion.status === "active") {
+    kicker.textContent = `${minion.game_mode} · ${minion.damage_class}`;
+    title.textContent = observing ? "Gut aufpassen …" : minion.gameplay_title || minion.name;
+    const visual = renderVisual(minion, observing);
+    if (visual) {
+      visualSlot.className = visual.className;
+      visualSlot.replaceChildren(...visual.childNodes);
+      visualSlot.hidden = false;
+    }
+    if (!observing) {
+      instruction.textContent = minion.instruction || "Schreibe !boss";
+      instruction.hidden = false;
+      progress.textContent = `${number(minion.participant_count)} / ${number(minion.required_participants)} Teilnehmer`;
+      progress.hidden = false;
+      const left = Math.max(0, Math.ceil((milliseconds(minion.expires_at) - now) / 1000));
+      timer.textContent = `${String(Math.floor(left / 60)).padStart(2, "0")}:${String(left % 60).padStart(2, "0")}`;
+      timer.hidden = false;
+    }
+    return;
+  }
+  if (minion.status === "success") {
+    kicker.textContent = "MINION BESIEGT";
+    title.textContent = `${minion.name} besiegt!`;
+    result.textContent = `${number(minion.damage_awarded).toLocaleString("de-DE")} Boss-Schaden`;
+    result.hidden = false;
+    return;
+  }
+  if (minion.status === "failure") {
+    kicker.textContent = "MINION ENTKOMMEN";
+    title.textContent = `${minion.name} war zu stark`;
+    result.textContent = `Fluch: ${String(minion.failure_curse_key || "").replaceAll("_", " ")}`;
+    result.hidden = false;
+    return;
+  }
+  if (minion.status === "curse") {
+    kicker.textContent = "FLUCH AKTIV";
+    title.textContent = String(minion.failure_curse_key || "").replaceAll("_", " ");
+    return;
+  }
+  card.hidden = true;
+}
+
+function eventAllowsGameplay(state) {
+  return state?.event?.status === "active" || (state?.event?.status === "testing" && identity.testActionsAuthorized);
+}
+
+function renderEvent(state) {
+  if (!identity.streamerId || state?.event?.id !== identity.eventId) {
+    hideOverlay("error");
+    return;
+  }
+  const paused = state.event.status === "paused" || Boolean(state?.settings?.event_paused);
+  if (!eventAllowsGameplay(state) && !paused) {
+    renderPreLaunch();
+    return;
+  }
+  const boss = state.boss || {};
+  const maxHp = number(boss.max_hp);
+  const currentHp = Math.min(maxHp, number(boss.current_hp));
+  const percent = maxHp ? (currentHp / maxHp) * 100 : 0;
+  const phase = Math.max(1, Math.floor(number(boss.phase?.phase_number || boss.phase_number || boss.current_phase || 1)));
+  let bossClip = `phase_${phase}`;
+  if (currentHp <= 0) bossClip = "defeated";
+  else if (previousBossHp !== null && currentHp < previousBossHp) bossClip = previousBossHp - currentHp >= maxHp * 0.02 ? "heavy_hit" : "hit";
+  else if (previousBossPhase !== null && phase !== previousBossPhase) bossClip = "phase_change";
+  setActor("boss-actor", "boss", "boss", bossClip, "◆");
+  window.clearTimeout(bossTransitionTimer);
+  if (["hit", "heavy_hit", "phase_change"].includes(bossClip)) {
+    bossTransitionTimer = window.setTimeout(() => setActor("boss-actor", "boss", "boss", `phase_${phase}`, "◆"), 900);
+  }
+  previousBossHp = currentHp;
+  previousBossPhase = phase;
+  document.getElementById("boss-name").textContent = boss.name || WIDGET_CONFIG.pack.boss.name || "Community Boss";
+  document.getElementById("boss-hp").hidden = fieldData.showHpNumbers === false;
+  document.getElementById("boss-hp").textContent = `${Math.floor(currentHp).toLocaleString("de-DE")} / ${Math.floor(maxHp).toLocaleString("de-DE")} HP`;
+  document.getElementById("boss-percent").hidden = fieldData.showPercentage === false;
+  document.getElementById("boss-percent").textContent = `${percent.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %`;
+  document.getElementById("health-fill").style.width = `${percent}%`;
+  const eventState = document.getElementById("event-state");
+  eventState.hidden = !paused;
+  eventState.textContent = paused ? `${WIDGET_CONFIG.pack.theme.labels.paused || "Event pausiert"} · Fortsetzung erfolgt automatisch` : "";
+  document.getElementById("event-widget").hidden = false;
+  document.getElementById("identity-card").hidden = true;
+  document.getElementById("boss-card").hidden = false;
+  renderMinion(paused ? null : currentMinion(state));
+  updateDiagnostics();
+}
+
+function setupRealtime() {
+  if (!window.supabase?.createClient || !identity.eventId) {
+    realtimeStatus = "unavailable";
+    updateDiagnostics();
+    return;
+  }
+  realtimeChannel?.unsubscribe?.();
+  supabaseClient = supabaseClient || window.supabase.createClient(WIDGET_CONFIG.supabaseUrl, WIDGET_CONFIG.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const refresh = () => queueRefresh(false);
+  realtimeStatus = "connecting";
+  realtimeChannel = supabaseClient.channel(`se-widget:${identity.eventId}:${identity.streamerId}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "minion_events", filter: `event_id=eq.${identity.eventId}` }, refresh)
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "bosses", filter: `event_id=eq.${identity.eventId}` }, refresh)
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "events", filter: `id=eq.${identity.eventId}` }, refresh)
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "event_settings", filter: `event_id=eq.${identity.eventId}` }, refresh)
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "streamers", filter: `id=eq.${identity.streamerId}` }, refresh)
+    .subscribe((status) => {
+      realtimeStatus = status === "SUBSCRIBED" ? "subscribed" : String(status || "disconnected").toLowerCase();
+      updateDiagnostics();
+    });
+}
+
+async function refreshWidget(reconnectRealtime = false) {
+  if (refreshInFlight) {
+    refreshQueued = true;
+    return;
+  }
+  refreshInFlight = true;
+  try {
+    const resolved = await resolveIdentity();
+    const changed = resolved.eventId !== identity.eventId || resolved.streamerId !== identity.streamerId;
+    setIdentity(resolved);
+    if (resolved.status !== "resolved") {
+      lastSafeState = null;
+      if (resolved.status === "not_registered" || resolved.status === "disabled") {
+        showIdentityMessage("Dieser Kanal ist nicht freigeschaltet.", "Bitte Eventorganisation kontaktieren.");
+      } else {
+        hideOverlay(resolved.status);
+      }
+      return;
+    }
+    if (changed || reconnectRealtime || realtimeStatus !== "subscribed") setupRealtime();
+    if (resolved.eventStatus === "draft") {
+      lastSafeState = null;
+      renderPreLaunch();
+      return;
+    }
+    const state = await rpc("get_stream_elements_widget_state", {
+      p_event_slug: WIDGET_CONFIG.eventSlug,
+      p_twitch_login: channelUsername,
+    });
+    if (!state) throw new Error("widget_state_unavailable");
+    lastSafeState = state;
+    lastSyncAt = Date.now();
+    supabaseStatus = "connected";
+    renderEvent(state);
+  } catch (error) {
+    supabaseStatus = "fallback";
+    safeDebug("Refresh fehlgeschlagen; letzter sicherer State bleibt aktiv.", error instanceof Error ? error.message : "unknown");
+    if (identity.status === "resolved" && lastSafeState) renderEvent(lastSafeState);
+    else showIdentityMessage("Verbindung wird wiederhergestellt", "Fallback aktiv");
+  } finally {
+    refreshInFlight = false;
+    updateDiagnostics();
+    if (refreshQueued) {
+      refreshQueued = false;
+      window.setTimeout(() => void refreshWidget(false), 0);
+    }
+  }
+}
+
+function queueRefresh(reconnectRealtime) {
+  void refreshWidget(reconnectRealtime);
+}
+
+function parseBossCommand(value, command = "!boss") {
+  if (typeof value !== "string") return null;
+  const tokens = value.trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length || tokens[0].toLowerCase() !== String(command).trim().toLowerCase() || tokens.length > 2) return null;
+  return { answer: tokens[1]?.toLowerCase() || null };
+}
+
+function extractChatAction(event) {
+  if (event?.detail?.listener !== "message") return null;
+  const data = event?.detail?.event?.data || {};
+  const userId = String(data.userId || data.user_id || data.tags?.["user-id"] || "").trim();
+  const messageId = String(data.msgId || data.msg_id || data.tags?.id || `se-${userId}-${Date.now()}`).trim();
+  const text = String(data.text || "");
+  return userId && text ? { userId, messageId, text } : null;
+}
+
+async function handleStreamElementsChatMessage(event) {
+  if (identity.status !== "resolved" || !lastSafeState || !eventAllowsGameplay(lastSafeState) || lastSafeState.settings?.event_paused) return;
+  const minion = currentMinion(lastSafeState);
+  if (!minion || minion.status !== "active" || Date.now() < milliseconds(minion.accepts_answers_at) || Date.now() >= milliseconds(minion.expires_at)) return;
+  const action = extractChatAction(event);
+  if (!action || !parseBossCommand(action.text, minion.command || packMinion(minion.key)?.command)) return;
+  const response = await fetch(`${WIDGET_CONFIG.supabaseUrl}/functions/v1/minion-action`, {
+    method: "POST",
+    headers: {
+      apikey: WIDGET_CONFIG.publishableKey,
+      Authorization: `Bearer ${WIDGET_CONFIG.publishableKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      eventId: identity.eventId,
+      streamerId: identity.streamerId,
+      minionEventId: minion.id,
+      participantId: action.userId,
+      messageId: action.messageId,
+      text: action.text,
+    }),
+  });
+  if (response.ok) queueRefresh(false);
+}
+
+function showVisualCurse(visualCurse) {
+  const durationMs = Math.min(15_000, Math.max(1_000, number(visualCurse?.durationMs)));
+  localCurse = { key: String(visualCurse?.key || ""), endsAt: Date.now() + durationMs };
+  window.clearTimeout(localCurseTimer);
+  renderCurse(currentMinion(lastSafeState));
+  localCurseTimer = window.setTimeout(() => {
+    localCurse = null;
+    renderCurse(currentMinion(lastSafeState));
+  }, durationMs);
+}
+
+async function runTestAction(descriptor) {
+  if (!WIDGET_CONFIG.testControls || !identity.testActionsAuthorized || identity.status !== "resolved") return;
+  const request = typeof descriptor === "string" ? { action: descriptor } : descriptor;
+  if (!request?.action) return;
+  const response = await fetch(`${WIDGET_CONFIG.supabaseUrl}/functions/v1/widget-test-action`, {
+    method: "POST",
+    headers: {
+      apikey: WIDGET_CONFIG.publishableKey,
+      Authorization: `Bearer ${WIDGET_CONFIG.publishableKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...request,
+      eventSlug: WIDGET_CONFIG.eventSlug,
+      channelUsername,
+      requestId: crypto.randomUUID(),
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  lastTestMessage = response.ok ? `${request.action}: ok` : `${request.action}: ${payload.error || response.status}`;
+  if (response.ok && payload?.data?.visualCurse) showVisualCurse(payload.data.visualCurse);
+  updateDiagnostics();
+  if (response.ok) queueRefresh(false);
+}
+
+function handleWidgetButton(event) {
+  if (event?.detail?.listener !== "widget-button") return;
+  const field = String(event?.detail?.event?.field || "");
+  const action = BUTTON_ACTIONS[field];
+  if (action) void runTestAction(action);
+}
+
+function testTickHeartbeat() {
+  if (!WIDGET_CONFIG.testControls || !identity.testActionsAuthorized || identity.status !== "resolved") return;
+  const hasRuntimeMinion = Boolean(currentMinion(lastSafeState));
+  const interval = hasRuntimeMinion ? ACTIVE_TEST_TICK_MS : IDLE_TEST_TICK_MS;
+  if (Date.now() - lastTestTickAt < interval) return;
+  lastTestTickAt = Date.now();
+  void runTestAction({ action: "tick" });
+}
+
+async function detectEditorMode() {
+  try {
+    const status = await window.SE_API?.getOverlayStatus?.();
+    editorMode = Boolean(status?.isEditorMode);
+  } catch {
+    editorMode = false;
+  }
+  if (diagnosticsVisible()) document.getElementById("event-widget").hidden = false;
+  updateDiagnostics();
+}
+
+window.addEventListener("onWidgetLoad", async (event) => {
+  fieldData = event?.detail?.fieldData || {};
+  startActorEngine();
+  applyVisualFields();
+  void loadAssetManifest().then(() => {
+    applyVisualFields();
+    const active = currentMinion(lastSafeState);
+    if (active) setMinionActor(active);
+  });
+  await detectEditorMode();
+  channelUsername = normalizeTwitchLogin(event?.detail?.channel?.username);
+  if (!channelUsername) {
+    safeDebug("StreamElements channel.username fehlt.");
+    showIdentityMessage("Kanal nicht erkannt", "StreamElements liefert keinen channel.username.");
+    return;
+  }
+  queueRefresh(true);
+  window.clearInterval(refreshTimer);
+  refreshTimer = window.setInterval(() => queueRefresh(realtimeStatus !== "subscribed"), FALLBACK_REFRESH_MS);
+  window.clearInterval(clockTimer);
+  clockTimer = window.setInterval(() => {
+    if (lastSafeState && identity.status === "resolved") renderEvent(lastSafeState);
+  }, 250);
+  window.clearInterval(testTickTimer);
+  testTickTimer = window.setInterval(testTickHeartbeat, 1_000);
+});
+
+window.addEventListener("onEventReceived", (event) => {
+  if (event.detail?.listener === "message") void handleStreamElementsChatMessage(event);
+  if (event.detail?.listener === "widget-button") handleWidgetButton(event);
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopActorEngine();
+  else startActorEngine();
+});
