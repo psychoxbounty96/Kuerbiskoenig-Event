@@ -126,6 +126,7 @@ export interface EventPackManifest {
     headline: string;
     shortDescription: string;
     callToAction: string;
+    assets?: Record<string, EventPackAsset>;
   };
 }
 

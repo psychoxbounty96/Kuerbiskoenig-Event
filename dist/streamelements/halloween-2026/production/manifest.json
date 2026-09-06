@@ -1,7 +1,9 @@
 {
+  "name": "PXB Event Engine Widget — Kürbiskönig Community Boss Event",
+  "engine": "pxb-community-event-engine",
   "format": "streamelements-custom-widget",
-  "version": 3,
-  "buildVersion": "1.0.0",
+  "version": 4,
+  "buildVersion": "2.0.0",
   "pack": {
     "key": "halloween-2026",
     "version": "1.0.0"

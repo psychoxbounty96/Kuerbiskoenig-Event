@@ -398,7 +398,7 @@ export default function AdminPage() {
         </section>
 
         <section className="admin-panel admin-panel--full minion-debugger">
-          <div className="panel-heading"><div><small>MINION ENGINE v0.4 · DEBUG / ADMIN</small><h2>Minion Debugger</h2></div><span>pro Streamer unabhängig</span></div>
+          <div className="panel-heading"><div><small>PXB EVENT ENGINE · DEBUG / ADMIN</small><h2>Encounter Debugger</h2></div><span>pro Streamer unabhängig</span></div>
           <div className="minion-spawn-form">
             <select value={streamerId} onChange={(event) => setSelectedStreamer(event.target.value)} aria-label="Streamer auswählen">
               {enabledStreamers.map((streamer) => <option key={streamer.id} value={streamer.id}>{streamer.displayName}</option>)}
@@ -441,7 +441,7 @@ export default function AdminPage() {
 
         <section className="admin-panel admin-panel--full twitch-admin-panel" id="twitch-status">
           <div className="panel-heading">
-            <div><small>TWITCH AWARENESS v0.3</small><h2>Twitch Status</h2></div>
+            <div><small>TWITCH INTEGRATION</small><h2>Twitch Status</h2></div>
             <span className={`twitch-health twitch-health--${state.twitch.health.status}`}>{state.twitch.health.status}</span>
           </div>
           <p className="admin-hint">{state.twitch.health.reason} Viewer-Samples sind die messbare Grundlage für Kalibrierung; Raids verursachen weiterhin keinen direkten Schaden.</p>
@@ -531,7 +531,7 @@ export default function AdminPage() {
         <section className="admin-panel admin-panel--full" id="widget-assets">
           <div className="panel-heading"><div><small>ASSETS & WIDGET</small><h2>Live-Asset-Diagnose</h2></div><span className={`twitch-health twitch-health--${assetHealth.status}`}>{assetHealth.status}</span></div>
           <div className="twitch-health-grid">
-            <article><small>Widget Build</small><strong>v0.5.0</strong><span>Standalone HTML / CSS / JS / Fields</span></article>
+            <article><small>Widget</small><strong>PXB Event Engine</strong><span>Standalone HTML / CSS / JS / Fields</span></article>
             <article><small>Event-Pack</small><strong>v{assetHealth.version}</strong><span>{state.event.packKey}</span></article>
             <article><small>HTTPS Assets</small><strong>{assetHealth.loaded} / {assetHealth.total}</strong><span>{assetHealth.detail}</span></article>
           </div>

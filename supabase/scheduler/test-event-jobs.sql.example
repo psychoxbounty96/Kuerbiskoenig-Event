@@ -1,0 +1,37 @@
+-- Optional jobs for one explicitly selected test event. Replace EVENT_SLUG.
+-- Secrets are read from Supabase Vault and never committed.
+
+select cron.schedule(
+  'pxb-event-engine-test-twitch-sync',
+  '*/2 * * * *',
+  $$ select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name='project_url') || '/functions/v1/twitch-sync',
+    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name='service_role_key')),
+    body := '{"eventSlug":"EVENT_SLUG"}'::jsonb
+  ); $$
+);
+
+select cron.schedule(
+  'pxb-event-engine-test-minion-tick',
+  '10 seconds',
+  $$ select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name='project_url') || '/functions/v1/minion-tick',
+    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name='service_role_key')),
+    body := (select jsonb_build_object('eventId',id) from public.events where slug='EVENT_SLUG')
+  ); $$
+);
+
+select cron.schedule(
+  'pxb-event-engine-test-passive-damage',
+  '*/2 * * * *',
+  $$ select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name='project_url') || '/functions/v1/process-passive-tick',
+    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name='service_role_key')),
+    body := '{"eventSlug":"EVENT_SLUG"}'::jsonb
+  ); $$
+);
+
+-- Recoverable removal:
+-- select cron.unschedule('pxb-event-engine-test-twitch-sync');
+-- select cron.unschedule('pxb-event-engine-test-minion-tick');
+-- select cron.unschedule('pxb-event-engine-test-passive-damage');

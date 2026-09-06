@@ -2191,7 +2191,7 @@ body:has(.overlay-page) {
   border-color: rgba(166, 98, 203, 0.44);
 }
 
-.ghost-icon {
+.minion-fallback-icon {
   font-size: 43px;
   filter: drop-shadow(0 0 10px rgba(166, 98, 203, 0.45));
 }

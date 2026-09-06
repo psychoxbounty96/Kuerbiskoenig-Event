@@ -18,7 +18,7 @@ import type { MinionInstance, OverlayIdentityResolution } from "../lib/types";
 
 function MinionArtwork({ minion }: { minion: MinionInstance }) {
   const assetUrl = getPackAssetUrl(MINION_TYPES[minion.typeId]?.asset);
-  if (!assetUrl) return <span className="ghost-icon" aria-hidden="true">{minion.icon}</span>;
+  if (!assetUrl) return <span className="minion-fallback-icon" aria-hidden="true">{minion.icon}</span>;
   return (
     <span className="minion-artwork" aria-hidden="true">
       <img src={assetUrl} alt="" />

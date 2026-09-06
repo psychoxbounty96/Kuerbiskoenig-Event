@@ -1,7 +1,7 @@
 -- Run once after deploying `minion-tick` and storing the URL/key in Vault.
 -- Supabase Cron accepts interval schedules; this keeps server-time transitions responsive.
 select cron.schedule(
-  'kuerbiskoenig-minion-tick',
+  'pxb-event-engine-minion-tick',
   '10 seconds',
   $$
     select net.http_post(

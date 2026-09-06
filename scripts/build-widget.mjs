@@ -128,7 +128,7 @@ function validateBuild(contents, variant) {
     [/SUPABASE_SERVICE_ROLE_KEY|TWITCH_CLIENT_SECRET|TWITCH_EVENTSUB_SECRET|MINION_PARTICIPANT_PEPPER|sb_secret_/i, "secret material"],
   ];
   for (const [pattern, label] of forbidden) if (pattern.test(combined)) throw new Error(`${variant}: ${label} found.`);
-  if (!contents.html.includes('id="event-widget"')) throw new Error(`${variant}: widget root missing.`);
+  if (!contents.html.includes('id="pxb-event-engine-widget"')) throw new Error(`${variant}: widget root missing.`);
   assertBalanced(contents.css, "{", "}", `${variant} CSS`);
   new Function(contents.js);
   JSON.parse(contents.fields);
@@ -149,7 +149,9 @@ for (const target of targets) {
     .replaceAll("__TEST_CONTROLS__", String(target.testControls));
   const fields = `${JSON.stringify(fieldsObject, null, 2)}\n`;
   const manifest = `${JSON.stringify({
-    format: "streamelements-custom-widget", version: 3, buildVersion: widgetBuildVersion,
+    name: `PXB Event Engine Widget — ${pack.name}`,
+    engine: "pxb-community-event-engine",
+    format: "streamelements-custom-widget", version: 4, buildVersion: widgetBuildVersion,
     pack: { key: pack.key, version: pack.version }, variant: target.variant, eventSlug: target.slug,
     testControls: target.testControls, files: { html: "html.html", css: "css.css", js: "js.js", fields: "fields.json" },
   }, null, 2)}\n`;

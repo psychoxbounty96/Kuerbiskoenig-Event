@@ -27,7 +27,7 @@ test("standalone StreamElements builds contain no local runtime or unresolved mo
     assert.doesNotMatch(all, /localhost|127\.0\.0\.1|file:\/\//i);
     assert.doesNotMatch(all, /\bimport\s|\brequire\s*\(|\bprocess\./);
     assert.doesNotMatch(all, /SUPABASE_SERVICE_ROLE_KEY|TWITCH_CLIENT_SECRET|MINION_PARTICIPANT_PEPPER|sb_secret_/i);
-    assert.match(built.html, /event-widget/);
+    assert.match(built.html, /pxb-event-engine-widget/);
     assert.match(built.html, /boss-actor/);
     assert.match(built.js, /"boss":\{[^}]*"asset":\{"type":"static","url":"https:\/\//);
     assert.equal(built.manifest.variant, name);
