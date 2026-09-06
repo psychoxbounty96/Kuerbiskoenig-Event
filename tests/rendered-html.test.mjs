@@ -40,9 +40,9 @@ test("ships website, admin and overlay application code in the static bundle", a
   assert.doesNotMatch(bundle, /YOUR_PROJECT|sb_publishable_REPLACE_ME/);
 });
 
-test("publishes all minion placeholder images at stable GitHub Pages paths", async () => {
+test("publishes all minion placeholder images at versioned pack paths", async () => {
   for (const folder of ["ghost", "zombie", "spider", "witch", "bats", "reaper", "herald"]) {
-    const image = new URL(`../github-pages-dist/assets/minions/${folder}/placeholder.jpg`, import.meta.url);
+    const image = new URL(`../github-pages-dist/event-packs/halloween-2026/1.0.0/assets/minions/${folder}/placeholder.jpg`, import.meta.url);
     assert.ok((await stat(image)).size > 50_000, `${folder} artwork should be published`);
   }
 });
@@ -60,8 +60,10 @@ test("GitHub Pages shell exposes raid branding and social metadata", async () =>
 test("publishes the boss artwork at the stable StreamElements URL", async () => {
   const image = new URL("../github-pages-dist/assets/boss/pumpkin-king.png", import.meta.url);
   const legacyImage = new URL("../github-pages-dist/assets/boss/Kürbiskönig mit leuchtendem Zepter.png", import.meta.url);
+  const packImage = new URL("../github-pages-dist/event-packs/halloween-2026/1.0.0/assets/boss/pumpkin-king.png", import.meta.url);
   assert.ok((await stat(image)).size > 1_000_000, "boss artwork should be published");
   assert.equal((await stat(legacyImage)).size, (await stat(image)).size, "existing widgets should retain a working boss URL");
+  assert.equal((await stat(packImage)).size, (await stat(image)).size, "versioned pack should publish the boss artwork");
 });
 
 test("publishes the website branding, favicon set and social card", async () => {
