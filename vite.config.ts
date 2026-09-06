@@ -23,7 +23,8 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, projectRoot, "");
   const read = (name: string, fallback = "") => process.env[name] || env[name] || fallback;
   const provider = read("VITE_DATA_PROVIDER", command === "serve" ? "mock" : "mock");
-  const eventSlug = read("VITE_EVENT_SLUG", "halloween-2026");
+  const packKey = read("VITE_EVENT_PACK_KEY");
+  const eventSlug = read("VITE_EVENT_SLUG");
   const supabaseUrl = read("VITE_SUPABASE_URL");
   const publishableKey = read("VITE_SUPABASE_PUBLISHABLE_KEY");
   const overlayStreamer = read("VITE_OVERLAY_STREAMER", "nachtfalter");
@@ -44,6 +45,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [react()],
     define: {
       "process.env.NEXT_PUBLIC_DATA_PROVIDER": JSON.stringify(provider),
+      "process.env.NEXT_PUBLIC_PACK_KEY": JSON.stringify(packKey),
       "process.env.NEXT_PUBLIC_EVENT_SLUG": JSON.stringify(eventSlug),
       "process.env.NEXT_PUBLIC_STREAMER_SLUG": JSON.stringify(overlayStreamer),
       "process.env.NEXT_PUBLIC_SUPABASE_URL": JSON.stringify(supabaseUrl),

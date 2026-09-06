@@ -1,7 +1,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-<main id="pumpkin-widget" class="pumpkin-widget" data-identity-status="loading" data-alignment="left" aria-live="polite" hidden>
+<main id="event-widget" class="event-widget" data-identity-status="loading" data-alignment="left" aria-live="polite" hidden>
   <section id="identity-card" class="identity-card" hidden>
-    <small>KÜRBISKÖNIG EVENT</small>
+    <small id="event-label">COMMUNITY EVENT</small>
     <strong id="identity-title">Verbindung wird geprüft …</strong>
     <span id="identity-detail"></span>
   </section>
@@ -11,12 +11,12 @@
       <span id="boss-actor" class="sprite-actor boss-artwork" data-actor-state="loading">
         <img class="sprite-actor__image" alt="" />
         <i class="sprite-actor__sheet"></i>
-        <b class="sprite-actor__fallback">🎃</b>
+        <b class="sprite-actor__fallback">◆</b>
       </span>
     </div>
     <div class="boss-info">
-      <small>GLOBALER BOSS</small>
-      <h1 id="boss-name">Kürbiskönig</h1>
+      <small id="boss-label">GLOBALER BOSS</small>
+      <h1 id="boss-name">Community Boss</h1>
       <div class="health-track"><i id="health-fill"></i></div>
       <div class="boss-readout">
         <strong id="boss-hp">Eventdaten werden geladen …</strong>
@@ -31,7 +31,7 @@
     <span id="minion-actor" class="sprite-actor minion-artwork" data-actor-state="loading" aria-hidden="true">
       <img class="sprite-actor__image" alt="" />
       <i class="sprite-actor__sheet"></i>
-      <b class="sprite-actor__fallback">👻</b>
+      <b class="sprite-actor__fallback">◆</b>
     </span>
     <div class="minion-copy">
       <small id="minion-kicker"></small>

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 import {
   buildDiscordLiveAnnouncement,
   isDiscordIncomingWebhookUrl,
+  type DiscordAnnouncementBranding,
   type DiscordLiveAnnouncementInput,
 } from "./discord-domain.ts";
 
@@ -61,6 +62,26 @@ export async function maybeSendDiscordLiveAnnouncement(
   }
   if (!streamer) return { status: "ineligible" as const };
 
+  let branding: DiscordAnnouncementBranding | null = null;
+  const { data: event } = await service.from("events")
+    .select("pack_key,pack_version")
+    .eq("id", input.eventId)
+    .maybeSingle();
+  if (event?.pack_key && event?.pack_version) {
+    const { data: release } = await service.from("event_pack_releases")
+      .select("manifest")
+      .eq("pack_key", event.pack_key)
+      .eq("version", event.pack_version)
+      .maybeSingle();
+    const integrations = release?.manifest && typeof release.manifest === "object"
+      ? (release.manifest as Record<string, unknown>).integrations
+      : null;
+    const discord = integrations && typeof integrations === "object"
+      ? (integrations as Record<string, unknown>).discord
+      : null;
+    if (discord && typeof discord === "object") branding = discord as DiscordAnnouncementBranding;
+  }
+
   const { data: claim, error: claimError } = await service.rpc("claim_discord_stream_announcement", {
     p_event_id: input.eventId,
     p_streamer_id: input.streamerId,
@@ -93,6 +114,7 @@ export async function maybeSendDiscordLiveAnnouncement(
       thumbnailUrl: input.stream.thumbnailUrl,
       viewerCount: input.stream.viewerCount,
       startedAt: String(input.stream.startedAt ?? new Date().toISOString()),
+      branding,
     });
     const executeUrl = new URL(webhookUrl);
     executeUrl.searchParams.set("wait", "true");

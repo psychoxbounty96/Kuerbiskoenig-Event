@@ -1,4 +1,4 @@
-import { MILESTONES } from "./config";
+import { ACTIVE_EVENT_PACK, MILESTONES, MINION_TYPES, PHASES } from "./config";
 import type { EventState } from "./types";
 
 export const INITIAL_EVENT_STATE: EventState = {
@@ -6,21 +6,43 @@ export const INITIAL_EVENT_STATE: EventState = {
   updatedAt: "2026-08-10T20:00:00.000Z",
   event: {
     id: "00000000-0000-4000-8000-000000000101",
-    slug: "halloween-2026-test",
-    name: "Kürbiskönig Community Event – Test",
-    description: "Sicherer Testlauf für das streamerübergreifende Halloween-Event.",
+    slug: ACTIVE_EVENT_PACK.events.find((event) => event.variant === "test")?.slug ?? ACTIVE_EVENT_PACK.events[0].slug,
+    name: `${ACTIVE_EVENT_PACK.name} – Test`,
+    description: `Lokaler Testlauf für ${ACTIVE_EVENT_PACK.name}.`,
     status: "testing",
     active: true,
     isTest: true,
+    packKey: ACTIVE_EVENT_PACK.key,
+    packVersion: ACTIVE_EVENT_PACK.version,
   },
   boss: {
     id: "00000000-0000-4000-8000-000000000201",
-    name: "Kürbiskönig",
-    maxHp: 10_000_000,
-    currentHp: 7_438_920,
-    phase: 2,
-    phaseName: "Der Fluch",
+    name: ACTIVE_EVENT_PACK.boss.name,
+    maxHp: ACTIVE_EVENT_PACK.boss.defaultMaxHp,
+    currentHp: Math.round(ACTIVE_EVENT_PACK.boss.defaultMaxHp * (((PHASES[1] ?? PHASES[0]).minPercent + (PHASES[1] ?? PHASES[0]).maxPercent) / 200)),
+    phase: (PHASES[1] ?? PHASES[0]).id,
+    phaseName: (PHASES[1] ?? PHASES[0]).name,
   },
+  phases: PHASES.map((phase, index) => ({
+    id: phase.id,
+    name: phase.name,
+    minPercent: phase.minPercent,
+    maxPercent: phase.maxPercent,
+    color: phase.color,
+    sortOrder: index + 1,
+    metadata: { intensity: phase.intensity, spawnWindowMinutes: phase.spawnWindowMinutes },
+  })),
+  minionDefinitions: Object.values(MINION_TYPES).map((definition) => ({
+    id: `definition-${definition.id}`,
+    key: definition.id,
+    name: definition.name,
+    icon: definition.icon,
+    gameMode: definition.gameMode,
+    phaseMinimum: definition.phaseMin,
+    damageClass: definition.damageClass,
+    presentation: definition.presentation,
+    enabled: true,
+  })),
   settings: {
     eventPaused: false,
     damageEnabled: true,

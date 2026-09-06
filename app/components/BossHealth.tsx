@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { PHASES } from "../lib/config";
 import { formatNumber, formatPercent } from "../lib/format";
 import type { EventState } from "../lib/types";
 
 export function BossHealth({
   boss,
+  phases,
   compact = false,
 }: {
   boss: EventState["boss"];
+  phases?: EventState["phases"];
   compact?: boolean;
 }) {
   const percent = boss.maxHp > 0 ? (boss.currentHp / boss.maxHp) * 100 : 0;
-  const phase = PHASES.find((item) => item.id === boss.phase) ?? PHASES[0];
+  const phase = phases?.find((item) => item.id === boss.phase) ?? phases?.[0] ?? { id: boss.phase, name: boss.phaseName, color: "#f28a2e" };
   const displayedHpRef = useRef(boss.currentHp);
   const previousHpRef = useRef(boss.currentHp);
   const [displayedHp, setDisplayedHp] = useState(boss.currentHp);
@@ -90,7 +91,7 @@ export function BossHealth({
         </span>
         {!compact && (
           <span className="phase-inline" style={{ color: phase.color }}>
-            Phase {phase.roman} · {phase.name}
+            Phase {phase.id} · {phase.name}
           </span>
         )}
       </div>

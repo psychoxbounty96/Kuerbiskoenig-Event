@@ -1,17 +1,51 @@
-# Kürbiskönig – Community Boss Event
+# PXB Community Event Engine
 
-> **Projektstatus: Pausiert**
->
-> Die Weiterentwicklung und der produktive Eventbetrieb sind bis auf Weiteres pausiert. Der vorhandene technische Stand bleibt als getestete Grundlage erhalten; es findet derzeit kein offizieller Live-Eventbetrieb statt.
+Eine eventunabhängige Engine für gemeinsame Twitch-Events. Supabase hält den autoritativen Zustand,
+StreamElements stellt das Overlay bereit und versionierte Event-Packs liefern Inhalt und Gestaltung.
+Die öffentliche Produktseite wird künftig als Astro-Oberfläche in `pxblabs.de` eingebunden.
 
-Kürbiskönig ist ein gemeinsames Twitch-Halloween-Event von PsychoXBounty. Der globale Boss, die öffentliche Eventseite und die StreamElements-Overlays teilen sich einen zentralen Supabase-State.
+> **Betriebsstatus:** Das extrahierte Pack `halloween-2026` und sein Produktionsevent bleiben pausiert.
+> Der Umbau der Engine aktiviert weder das Event noch produktiven passiven Schaden.
 
-- [Öffentliche Eventseite](https://psychoxbounty96.github.io/Kuerbiskoenig-Event/)
-- [Adminbereich](https://psychoxbounty96.github.io/Kuerbiskoenig-Event/admin/)
-- [Kurzanleitung für teilnehmende Streamer](docs/STREAMER_SETUP.md)
+## Trennung der Bausteine
 
-Der Runtime-Stack besteht ausschließlich aus StreamElements, Supabase, Twitch API/EventSub sowie GitHub Pages. Es ist kein eigener Bot, kein OBS-Plugin und kein dauerhaft laufender Betreiber-PC erforderlich.
+- `packages/event-engine`: reine Phasen-, Encounter-, Damage- und Animationslogik ohne Eventnamen.
+- `packages/pack-schema`: validierter Vertrag für versionierte Event-Packs.
+- `packages/astro-integration`: Headless-Client für Astro SSR und interaktive Realtime-Islands.
+- `event-packs/<pack>/pack.json`: Boss, Phasen, Texte, Farben, Assets, Begegnungen, Effekte und Regeln.
+- `streamelements-widget`: ein generischer Widget-Renderer; der Build bettet genau ein Pack und Eventziel ein.
+- `supabase`: mandantenfähige Runtime, Twitch/EventSub, Realtime, sichere Mutationen und Pack-Registry.
+- `app`: Admin und eine austauschbare Vorschauoberfläche; keine Voraussetzung für den Dauerbetrieb.
 
-Aktueller Stand: Pre-Launch/Testbetrieb. Das Produktionsevent und produktiver passiver Schaden bleiben bis zur bewussten Freigabe deaktiviert. Statische Artworks dienen als funktionsfähige Platzhalter und können später über das versionierte Asset-Manifest durch Sprite-Sheets ersetzt werden.
+Ein Supabase-Event pinnt immer `pack_key` und `pack_version`. Dadurch können mehrere Events und
+Designs gleichzeitig dieselbe Engine verwenden, ohne automatisch irgendein „aktives Event“ zu wählen.
 
-Interne Betreiber-, Wiederherstellungs- und Abschlussdokumentation wird absichtlich nicht in diesem öffentlichen Repository geführt. Geheimnisse wie Service-Role-Key, Twitch Client Secret oder EventSub Secret gehören ausschließlich in die geschützten Supabase-/GitHub-Einstellungen.
+## Häufige Befehle
+
+```text
+npm test
+npm run validate:packs
+npm run build:widget -- --pack halloween-2026
+npm run build
+```
+
+Der Widget-Build liegt unter
+`dist/streamelements/<pack-key>/<production|test>/` und enthält direkt einsetzbare Dateien für
+HTML, CSS, JS und Fields. Statische Pack-Assets werden beim Build nach
+`public/event-packs/<pack-key>/<version>/` synchronisiert. Sprite-Sheets können später im selben
+Manifest an die Stelle statischer Bilder treten, ohne die Engine umzubauen.
+
+## Astro / pxblabs.de
+
+`packages/astro-integration` liefert keine fertige Eventseite und kein Halloween-Design. Astro
+entscheidet über Route, SEO, Navigation und Darstellung; der Adapter lädt ausschließlich den
+öffentlichen, RLS-geschützten Eventzustand und hält ihn über Realtime plus Fallback aktuell.
+
+## Sicherheit
+
+Browser und Widget erhalten nur die Supabase-URL, einen Publishable Key, Packmetadaten und einen
+festen Event-Slug. Service Role, Twitch-Secrets, EventSub-Secret und Participant Pepper bleiben in
+Supabase. Pack-Manifeste dürfen keine Secrets oder ausführbaren privilegierten Code enthalten.
+
+Interne Betreiber-, Wiederherstellungs- und Abschlussdokumentation wird absichtlich nicht in diesem
+Repository geführt. Die kurze Teilnehmeranleitung steht in [docs/STREAMER_SETUP.md](docs/STREAMER_SETUP.md).

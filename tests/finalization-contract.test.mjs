@@ -33,17 +33,17 @@ test("passive endpoint is service-authorized and cannot accept a client damage v
   assert.doesNotMatch(source, /body\.(damage|amount|hp)/);
 });
 
-test("widget assets use a versioned HTTPS manifest with static and spritesheet runtime support", async () => {
+test("widget assets use a versioned event pack with static and spritesheet runtime support", async () => {
   const [manifestText, widget, html] = await Promise.all([
-    readFile(new URL("public/assets/widget-assets.json", root), "utf8"),
+    readFile(new URL("event-packs/halloween-2026/pack.json", root), "utf8"),
     readFile(new URL("streamelements-widget/widget.js", root), "utf8"),
     readFile(new URL("streamelements-widget/widget.html", root), "utf8"),
   ]);
   const manifest = JSON.parse(manifestText);
-  assert.equal(manifest.version, 1);
-  assert.match(manifest.boss.url, /^https:\/\//);
-  assert.equal(Object.keys(manifest.minions).length, 7);
-  assert.equal(Object.keys(manifest.curses).length, 7);
+  assert.equal(manifest.schemaVersion, 1);
+  assert.equal(manifest.version, "1.0.0");
+  assert.equal(manifest.minions.length, 7);
+  assert.equal(manifest.effects.length, 7);
   assert.match(widget, /asset\.type [!=]==? "spritesheet"/);
   assert.match(widget, /backgroundPosition/);
   assert.match(widget, /requestAnimationFrame\(animateActors\)/);
@@ -51,12 +51,8 @@ test("widget assets use a versioned HTTPS manifest with static and spritesheet r
   assert.match(widget, /WIDGET_BUILD_VERSION/);
   assert.match(html, /id="boss-actor"/);
   assert.match(html, /id="minion-actor"/);
-  for (const clip of ["idle", "hit", "heavy_hit", "phase_change", "attack", "laugh", "defeated", "prelaunch", "paused"]) {
-    assert.ok(manifest.boss.clips[clip], `boss clip ${clip} missing`);
-  }
-  for (const clip of ["intro", "idle", "observe", "active", "success", "failure", "curse", "exit"]) {
-    assert.ok(manifest.clipProfiles[manifest.minions.ghost.profile][clip], `minion clip ${clip} missing`);
-  }
+  assert.ok(manifest.boss.asset, "boss asset missing");
+  for (const minion of manifest.minions) assert.ok(minion.asset, `${minion.key} asset missing`);
 });
 
 test("operator controls expose safe passive and tracking settings without client secrets", async () => {

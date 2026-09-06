@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "key": "halloween-2026",
+  "version": "1.0.0",
+  "locale": "de-DE",
+  "name": "Kürbiskönig Community Boss Event",
+  "description": "Halloween-Eventpack für die PXB Community Event Engine.",
+  "engine": { "minimumVersion": "1.0.0" },
+  "events": [
+    { "slug": "halloween-2026", "variant": "production", "testControls": false },
+    { "slug": "halloween-2026-test", "variant": "test", "testControls": true }
+  ],
+  "theme": {
+    "className": "theme-halloween-2026",
+    "colors": {
+      "primary": "#f28a2e",
+      "secondary": "#7f75e9",
+      "accent": "#c878f2",
+      "surface": "#120d18",
+      "text": "#fff4dc"
+    },
+    "labels": {
+      "event": "KÜRBISKÖNIG EVENT",
+      "boss": "GLOBALER BOSS",
+      "prelaunch": "Event startet bald",
+      "paused": "Das Event pausiert"
+    }
+  },
+  "boss": {
+    "name": "Kürbiskönig",
+    "defaultMaxHp": 10000000,
+    "asset": "assets/boss/pumpkin-king.png",
+    "phases": [
+      { "id": 1, "name": "Das Erwachen", "minPercent": 75, "maxPercent": 100, "color": "#d8a35d", "spawnWindowMinutes": [45, 60], "intensity": 0.7 },
+      { "id": 2, "name": "Der Fluch", "minPercent": 50, "maxPercent": 75, "color": "#c878f2", "spawnWindowMinutes": [40, 55], "intensity": 0.85 },
+      { "id": 3, "name": "Die Dunkelheit", "minPercent": 25, "maxPercent": 50, "color": "#7f75e9", "spawnWindowMinutes": [35, 50], "intensity": 1 },
+      { "id": 4, "name": "Der Untergang", "minPercent": 0, "maxPercent": 25, "color": "#e65333", "spawnWindowMinutes": [30, 45], "intensity": 1.1 }
+    ],
+    "milestones": [
+      { "percent": 75, "label": "Phase II", "description": "Der Fluch beginnt" },
+      { "percent": 50, "label": "Phase III", "description": "Die Dunkelheit bricht herein" },
+      { "percent": 25, "label": "Phase IV", "description": "Der Untergang naht" },
+      { "percent": 10, "label": "Finale Warnung", "description": "Der Kürbiskönig steht kurz vor dem Fall" }
+    ]
+  },
+  "damageClasses": {
+    "STANDARD": { "baseDamage": 5000, "provisional": true },
+    "HIGH": { "baseDamage": 8000, "provisional": true },
+    "ELITE": { "baseDamage": 12000, "provisional": true },
+    "SPECIAL": { "baseDamage": 15000, "provisional": true }
+  },
+  "minions": [
+    {
+      "key": "ghost", "name": "Rastloser Geist", "icon": "👻", "gameMode": "PARTICIPATION", "phaseMinimum": 1, "weight": 1,
+      "introDurationMs": 3000, "durationSeconds": 40, "observeSeconds": 0, "damageClass": "STANDARD", "failureEffectKey": "fog",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 24, "participationFactor": 0.45, "curveExponent": 0.72,
+      "introTitle": "Ein Geist ist erschienen!", "gameplayTitle": "Fangt den Geist!", "instruction": "Schreibe !boss",
+      "presentation": "participation", "runtime": { "type": "none" }, "asset": "assets/minions/ghost/placeholder.jpg"
+    },
+    {
+      "key": "zombie_horde", "name": "Zombiehorde", "icon": "🧟", "gameMode": "VISUAL_CHOICE", "phaseMinimum": 1, "weight": 1,
+      "introDurationMs": 3000, "durationSeconds": 25, "observeSeconds": 4, "damageClass": "STANDARD", "failureEffectKey": "zombie_hands",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 24, "participationFactor": 0.42, "curveExponent": 0.72,
+      "introTitle": "Eine Horde nähert sich!", "gameplayTitle": "Wo greift die Horde an?", "instruction": "!boss links · mitte · rechts",
+      "presentation": "direction-choice", "runtime": { "type": "random-choice", "options": ["links", "mitte", "rechts"], "visualTarget": true, "tieStrategy": "failure" },
+      "asset": "assets/minions/zombie/placeholder.jpg"
+    },
+    {
+      "key": "spider_queen", "name": "Spinnenkönigin", "icon": "🕷️", "gameMode": "VISUAL_CHOICE", "phaseMinimum": 1, "weight": 1,
+      "introDurationMs": 3000, "durationSeconds": 25, "observeSeconds": 0, "damageClass": "STANDARD", "failureEffectKey": "spider_web",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 24, "participationFactor": 0.42, "curveExponent": 0.72,
+      "introTitle": "Die Spinnenkönigin kriecht heran!", "gameplayTitle": "Findet die Königin!", "instruction": "Schreibe z. B. !boss 4",
+      "presentation": "numbered-choice", "runtime": { "type": "random-option-count", "minimumOptions": 4, "maximumOptions": 6 }, "asset": "assets/minions/spider/placeholder.jpg"
+    },
+    {
+      "key": "witch", "name": "Die Hexe", "icon": "🧙", "gameMode": "VOTE", "phaseMinimum": 2, "weight": 1.1,
+      "introDurationMs": 3000, "durationSeconds": 35, "observeSeconds": 0, "damageClass": "HIGH", "failureEffectKey": "witch_distortion",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 26, "participationFactor": 0.4, "curveExponent": 0.72,
+      "introTitle": "Die Hexe stellt euch eine Frage!", "gameplayTitle": "Die Hexe fragt:", "instruction": "Antworte mit !boss A, B oder C",
+      "presentation": "question", "runtime": { "type": "question-pool", "questions": [
+        { "question": "Welches Tier wird klassisch mit Vampiren verbunden?", "answers": { "a": "Wolf", "b": "Fledermaus", "c": "Katze" }, "correctAnswer": "b", "difficulty": 1 },
+        { "question": "Was leuchtet in einer klassischen Halloween-Laterne?", "answers": { "a": "Eine Kerze", "b": "Ein Stern", "c": "Ein Spiegel" }, "correctAnswer": "a", "difficulty": 1 },
+        { "question": "Welches Gemüse wird zu Halloween meist geschnitzt?", "answers": { "a": "Kartoffel", "b": "Kürbis", "c": "Paprika" }, "correctAnswer": "b", "difficulty": 1 }
+      ] }, "asset": "assets/minions/witch/placeholder.jpg"
+    },
+    {
+      "key": "bat_swarm", "name": "Fledermausschwarm", "icon": "🦇", "gameMode": "MEMORY", "phaseMinimum": 2, "weight": 1.05,
+      "introDurationMs": 3000, "durationSeconds": 20, "observeSeconds": 5, "damageClass": "STANDARD", "failureEffectKey": "bat_attack",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 24, "participationFactor": 0.42, "curveExponent": 0.72,
+      "introTitle": "Ein Schwarm verdunkelt den Himmel!", "gameplayTitle": "Wie viele waren es?", "instruction": "Schreibe z. B. !boss 7",
+      "presentation": "count-memory", "runtime": { "type": "random-number", "minimum": 4, "maximum": 12 }, "asset": "assets/minions/bats/placeholder.jpg"
+    },
+    {
+      "key": "reaper", "name": "Der Sensenmann", "icon": "💀", "gameMode": "MEMORY", "phaseMinimum": 3, "weight": 0.7,
+      "introDurationMs": 3000, "durationSeconds": 25, "observeSeconds": 4, "damageClass": "HIGH", "failureEffectKey": "darkness",
+      "command": "!boss", "minimumParticipants": 2, "maximumParticipants": 26, "participationFactor": 0.4, "curveExponent": 0.72,
+      "introTitle": "Der Sensenmann prüft euer Gedächtnis!", "gameplayTitle": "Welche Folge war richtig?", "instruction": "Antworte mit !boss A, B oder C",
+      "presentation": "sequence-memory",
+      "runtime": { "type": "fixed-sequence", "sequence": ["💀", "🕯️", "🎃"], "options": ["a", "b", "c"], "optionLabels": { "a": "🎃 → 🕯️ → 💀", "b": "💀 → 🕯️ → 🎃", "c": "🕯️ → 💀 → 🎃" }, "correctAnswer": "b", "tieStrategy": "failure" },
+      "asset": "assets/minions/reaper/placeholder.jpg"
+    },
+    {
+      "key": "kings_herald", "name": "Herold des Königs", "icon": "👑", "gameMode": "PARTICIPATION", "phaseMinimum": 1, "weight": 0,
+      "introDurationMs": 4000, "durationSeconds": 45, "observeSeconds": 0, "damageClass": "ELITE", "failureEffectKey": "royal_curse",
+      "command": "!boss", "minimumParticipants": 4, "maximumParticipants": 38, "participationFactor": 0.55, "curveExponent": 0.72,
+      "introTitle": "Verstärkung ist eingetroffen!", "gameplayTitle": "Schlagt den Herold zurück!", "instruction": "Schreibe !boss",
+      "presentation": "participation", "runtime": { "type": "none" }, "asset": "assets/minions/herald/placeholder.jpg"
+    }
+  ],
+  "effects": [
+    { "key": "fog", "name": "Geisternebel", "durationMs": 12000, "intensity": 0.7, "presentation": "fog" },
+    { "key": "zombie_hands", "name": "Zombiehände", "durationMs": 10000, "intensity": 0.7, "presentation": "edge-hands" },
+    { "key": "spider_web", "name": "Spinnenbefall", "durationMs": 12000, "intensity": 0.7, "presentation": "edge-web" },
+    { "key": "witch_distortion", "name": "Hexenfluch", "durationMs": 11000, "intensity": 0.7, "presentation": "color-distortion" },
+    { "key": "bat_attack", "name": "Fledermausangriff", "durationMs": 10000, "intensity": 0.7, "presentation": "flying-swarm" },
+    { "key": "darkness", "name": "Dunkelheit", "durationMs": 10000, "intensity": 0.7, "presentation": "dark-vignette" },
+    { "key": "royal_curse", "name": "Königlicher Fluch", "durationMs": 12000, "intensity": 0.7, "presentation": "royal-vignette" }
+  ],
+  "scheduling": {
+    "raidSpecialMinionKey": "kings_herald",
+    "raidDelaySeconds": [90, 120],
+    "raidCooldownSeconds": [600, 900]
+  },
+  "integrations": {
+    "discord": {
+      "senderName": "Kürbiskönig Event",
+      "footer": "Kürbiskönig Community Boss Event",
+      "defaultLiveDescription": "Die Community stellt sich dem Kürbiskönig.",
+      "color": 16347926
+    }
+  },
+  "website": {
+    "headline": "Gemeinsam gegen den Kürbiskönig",
+    "shortDescription": "Mehrere Communities, ein gemeinsamer Raidboss.",
+    "callToAction": "Teilnehmende Streams entdecken"
+  }
+}

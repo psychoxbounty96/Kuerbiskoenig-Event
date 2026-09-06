@@ -1,11 +1,11 @@
+/* global __PACK_MANIFEST__, __BUTTON_ACTIONS__ */
 // Values between __...__ are replaced by `npm run build:widget`.
 const WIDGET_CONFIG = Object.freeze({
   supabaseUrl: "__SUPABASE_URL__",
   publishableKey: "__SUPABASE_PUBLISHABLE_KEY__",
   eventSlug: "__EVENT_SLUG__",
-  assetBase: "__ASSET_BASE__",
-  bossAsset: "__BOSS_ASSET__",
-  assetManifest: "__ASSET_MANIFEST__",
+  pack: __PACK_MANIFEST__,
+  buttonActions: __BUTTON_ACTIONS__,
   buildVersion: "__WIDGET_BUILD_VERSION__",
   testControls: "__TEST_CONTROLS__" === "true",
 });
@@ -13,48 +13,7 @@ const WIDGET_CONFIG = Object.freeze({
 const FALLBACK_REFRESH_MS = 5_000;
 const ACTIVE_TEST_TICK_MS = 2_000;
 const IDLE_TEST_TICK_MS = 10_000;
-const MINION_ARTWORK_FOLDERS = Object.freeze({
-  ghost: "ghost",
-  zombie_horde: "zombie",
-  spider_queen: "spider",
-  witch: "witch",
-  bat_swarm: "bats",
-  reaper: "reaper",
-  kings_herald: "herald",
-});
-const BUTTON_ACTIONS = Object.freeze({
-  testReloadState: "reload_state",
-  testRunTick: "tick",
-  testViewerSample: "create_test_viewer_sample",
-  testPassiveTick: "test_passive_tick",
-  testBossHit: "test_boss_hit",
-  testBossBigHit: "test_boss_big_hit",
-  testResetBoss: "reset_test_boss",
-  testPhase1: "set_phase_1",
-  testPhase2: "set_phase_2",
-  testPhase3: "set_phase_3",
-  testPhase4: "set_phase_4",
-  testSpawnGhost: "spawn_ghost",
-  testSpawnZombie: "spawn_zombie_horde",
-  testSpawnSpider: "spawn_spider_queen",
-  testSpawnWitch: "spawn_witch",
-  testSpawnBats: "spawn_bat_swarm",
-  testSpawnReaper: "spawn_reaper",
-  testSpawnHerald: "spawn_kings_herald",
-  testForceSuccess: "force_minion_success",
-  testForceFailure: "force_minion_failure",
-  testCancelMinion: "cancel_minion",
-  testExpireMinion: "expire_minion",
-  testRaid: "simulate_eligible_raid",
-  testHeraldNow: "spawn_herald_now",
-  testFog: "test_fog",
-  testZombieHands: "test_zombie_hands",
-  testSpiderWeb: "test_spider_web",
-  testWitchDistortion: "test_witch_distortion",
-  testBatAttack: "test_bat_attack",
-  testDarkness: "test_darkness",
-  testRoyalCurse: "test_royal_curse",
-});
+const BUTTON_ACTIONS = Object.freeze(WIDGET_CONFIG.buttonActions || {});
 
 const IDENTITY_STATUSES = new Set(["resolved", "not_registered", "disabled", "event_unavailable", "error"]);
 const OPEN_MINION_STATUSES = new Set(["intro", "active", "success", "failure", "curse"]);
@@ -116,7 +75,7 @@ function milliseconds(value) {
 
 function safeDebug(message, detail) {
   if (typeof console !== "undefined" && typeof console.debug === "function") {
-    console.debug(`[Kürbiskönig] ${message}`, detail || "");
+    console.debug(`[${WIDGET_CONFIG.pack.name}] ${message}`, detail || "");
   }
 }
 
@@ -132,42 +91,45 @@ function validAsset(asset) {
 }
 
 async function loadAssetManifest() {
-  try {
-    const response = await fetch(WIDGET_CONFIG.assetManifest, { cache: "no-cache" });
-    if (!response.ok) throw new Error(`asset_manifest_${response.status}`);
-    const payload = await response.json();
-    if (!payload || number(payload.version) < 1 || !validAsset(payload.boss)) throw new Error("asset_manifest_invalid");
-    assetManifest = payload;
-    const urls = [payload.boss, ...Object.values(payload.minions || {}), ...Object.values(payload.curses || {})]
-      .flatMap((asset) => [asset?.url, asset?.fallbackUrl])
-      .filter((url) => typeof url === "string" && url.startsWith("https://"));
-    for (const url of new Set(urls)) {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = url;
-    }
-    safeDebug("Asset-Manifest geladen", { version: payload.version });
-  } catch (error) {
-    assetManifest = null;
-    safeDebug("Asset-Manifest nicht verfügbar; HTTPS-Fallbacks bleiben aktiv.", error instanceof Error ? error.message : "unknown");
+  assetManifest = {
+    version: WIDGET_CONFIG.pack.version,
+    boss: WIDGET_CONFIG.pack.boss.asset,
+    minions: Object.fromEntries(WIDGET_CONFIG.pack.minions.map((minion) => [minion.key, minion.asset])),
+    curses: Object.fromEntries(WIDGET_CONFIG.pack.effects.map((effect) => [effect.key, effect.asset || { type: "css" }])),
+  };
+  const urls = [assetManifest.boss, ...Object.values(assetManifest.minions), ...Object.values(assetManifest.curses)]
+    .flatMap((asset) => [asset?.url, asset?.fallbackUrl])
+    .filter((url) => typeof url === "string" && url.startsWith("https://"));
+  for (const url of new Set(urls)) {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
   }
+  safeDebug("Pack-Assets geladen", { pack: WIDGET_CONFIG.pack.key, version: WIDGET_CONFIG.pack.version });
 }
 
-function fallbackMinionAsset(key) {
-  const folder = MINION_ARTWORK_FOLDERS[key];
-  return folder ? `${WIDGET_CONFIG.assetBase}/${folder}/placeholder.jpg` : null;
+function packMinion(key) {
+  return WIDGET_CONFIG.pack.minions.find((minion) => minion.key === key) || null;
+}
+
+function packEffect(key) {
+  return WIDGET_CONFIG.pack.effects.find((effect) => effect.key === key) || null;
+}
+
+function minionPresentation(minion) {
+  return String(minion?.presentation || packMinion(minion?.key)?.presentation || "participation");
 }
 
 function actorAsset(kind, key) {
   if (kind === "boss") {
     const boss = assetManifest?.boss;
     const resolved = boss ? { ...boss, clips: boss.clips || assetManifest?.clipProfiles?.[boss.profile] } : null;
-    return validAsset(resolved) ? resolved : { type: "static", url: WIDGET_CONFIG.bossAsset };
+    return validAsset(resolved) ? resolved : { type: "css" };
   }
   const candidate = kind === "minion" ? assetManifest?.minions?.[key] : assetManifest?.curses?.[key];
   const resolved = candidate ? { ...candidate, clips: candidate.clips || assetManifest?.clipProfiles?.[candidate.profile] } : null;
   if (validAsset(resolved)) return resolved;
-  if (kind === "minion") return { type: "static", url: fallbackMinionAsset(key) };
+  if (kind === "minion") return { type: "css" };
   return { type: "css" };
 }
 
@@ -314,18 +276,24 @@ function stopActorEngine() {
 
 function setIdentity(next) {
   identity = next;
-  document.getElementById("pumpkin-widget").dataset.identityStatus = next.status;
+  document.getElementById("event-widget").dataset.identityStatus = next.status;
   updateDiagnostics();
 }
 
 function applyVisualFields() {
   const scale = Math.max(50, Math.min(150, number(fieldData.overlayScale || 100)));
   const alignment = ["left", "right"].includes(fieldData.alignment) ? fieldData.alignment : "left";
-  const widget = document.getElementById("pumpkin-widget");
+  const widget = document.getElementById("event-widget");
   widget.style.setProperty("--widget-scale", String(scale / 100));
   widget.dataset.alignment = alignment;
   widget.classList.toggle("reduced-motion", Boolean(fieldData.reducedMotion));
-  setActor("boss-actor", "boss", "pumpkin_king", "idle", "🎃");
+  widget.classList.add(WIDGET_CONFIG.pack.theme.className);
+  for (const [name, value] of Object.entries(WIDGET_CONFIG.pack.theme.colors || {})) {
+    widget.style.setProperty(`--pack-${name}`, String(value));
+  }
+  document.getElementById("event-label").textContent = WIDGET_CONFIG.pack.theme.labels.event || WIDGET_CONFIG.pack.name;
+  document.getElementById("boss-label").textContent = WIDGET_CONFIG.pack.theme.labels.boss || "GLOBALER BOSS";
+  setActor("boss-actor", "boss", "boss", "idle", "◆");
 }
 
 function diagnosticsVisible() {
@@ -359,7 +327,7 @@ function updateDiagnostics() {
 
 function hideOverlay(status) {
   setIdentity({ ...identity, status });
-  const widget = document.getElementById("pumpkin-widget");
+  const widget = document.getElementById("event-widget");
   widget.hidden = !diagnosticsVisible();
   document.getElementById("identity-card").hidden = true;
   document.getElementById("boss-card").hidden = true;
@@ -372,7 +340,7 @@ function showIdentityMessage(title, detail) {
     hideOverlay(identity.status);
     return;
   }
-  const widget = document.getElementById("pumpkin-widget");
+  const widget = document.getElementById("event-widget");
   widget.hidden = false;
   document.getElementById("boss-card").hidden = true;
   document.getElementById("minion-card").hidden = true;
@@ -407,7 +375,7 @@ async function resolveIdentity() {
 }
 
 function renderPreLaunch() {
-  showIdentityMessage("Overlay erfolgreich verbunden", `${identity.streamerDisplayName || identity.channelUsername} · Event startet bald`);
+  showIdentityMessage("Overlay erfolgreich verbunden", `${identity.streamerDisplayName || identity.channelUsername} · ${WIDGET_CONFIG.pack.theme.labels.prelaunch || "Event startet bald"}`);
 }
 
 function currentMinion(state) {
@@ -425,41 +393,45 @@ function setMinionActor(minion) {
   const clip = minion.status === "active"
     ? (Date.now() < milliseconds(minion.accepts_answers_at) ? "observe" : "active")
     : minion.status;
-  setActor("minion-actor", "minion", minion.key, clip, minion.icon || "👻");
+  setActor("minion-actor", "minion", minion.key, clip, minion.icon || "◆");
 }
-
 function renderVisual(minion, observing) {
   const config = minion.runtime_config || {};
   const box = element("div", "minion-visual");
-  if (minion.key === "zombie_horde") {
-    for (const direction of ["links", "mitte", "rechts"]) {
-      const item = element("span", observing && config.visual_target === direction ? "is-target" : "", direction === "links" ? "←" : direction === "rechts" ? "→" : "↑");
+  const presentation = minionPresentation(minion);
+  if (presentation === "direction-choice") {
+    const options = config.options || [];
+    const target = config.visual_target || config.visualTarget;
+    for (const direction of options) {
+      const item = element("span", observing && target === direction ? "is-target" : "", direction === "links" ? "←" : direction === "rechts" ? "→" : "↑");
       item.append(element("em", "", direction));
       box.append(item);
     }
     return box;
   }
-  if (minion.key === "spider_queen") {
+  if (presentation === "numbered-choice") {
+    const target = config.target_index || config.targetIndex || config.queen_index || config.queenIndex;
     for (const option of config.options || []) {
-      const item = element("span", observing && String(config.queen_index) === String(option) ? "is-target" : "", "🕷️");
+      const item = element("span", observing && String(target) === String(option) ? "is-target" : "", minion.icon || "◆");
       item.append(element("b", "", String(option)));
       box.append(item);
     }
     return box;
   }
-  if (minion.key === "bat_swarm" && observing) {
-    box.classList.add("minion-visual--bats");
-    for (let index = 0; index < number(config.count); index += 1) box.append(element("span", "", "🦇"));
+  if (presentation === "count-memory" && observing) {
+    box.classList.add("minion-visual--swarm");
+    for (let index = 0; index < number(config.count); index += 1) box.append(element("span", "", minion.icon || "◆"));
     return box;
   }
-  if (minion.key === "reaper" && observing) {
+  if (presentation === "sequence-memory" && observing) {
     for (const item of config.sequence || []) box.append(element("span", "", String(item)));
     return box;
   }
-  if (minion.key === "witch" || minion.key === "reaper") {
+  if (presentation === "question" || presentation === "sequence-memory") {
     const question = element("div", "minion-question");
     if (config.question) question.append(element("strong", "", String(config.question)));
-    for (const key of ["a", "b", "c"]) question.append(element("span", "", `${key.toUpperCase()} – ${String(config.option_labels?.[key] || "")}`));
+    const labels = config.option_labels || config.optionLabels || {};
+    for (const key of config.options || Object.keys(labels)) question.append(element("span", "", `${String(key).toUpperCase()} – ${String(labels[key] || "")}`));
     return question;
   }
   return null;
@@ -475,7 +447,8 @@ function renderCurse(minion) {
     return;
   }
   layer.hidden = false;
-  layer.className = `curse-layer curse-layer--${curseKey}`;
+  const presentation = packEffect(curseKey)?.presentation || "generic-vignette";
+  layer.className = `curse-layer curse-layer--${presentation}`;
   const current = actorStates.get("curse-actor");
   const clip = current?.root?.dataset?.actorKey === curseKey ? current.clip : "enter";
   setActor("curse-actor", "curse", curseKey, clip, "");
@@ -592,19 +565,19 @@ function renderEvent(state) {
   const maxHp = number(boss.max_hp);
   const currentHp = Math.min(maxHp, number(boss.current_hp));
   const percent = maxHp ? (currentHp / maxHp) * 100 : 0;
-  const phase = Math.max(1, Math.min(4, Math.floor(number(boss.phase?.phase_number || boss.phase_number || boss.current_phase || 1))));
+  const phase = Math.max(1, Math.floor(number(boss.phase?.phase_number || boss.phase_number || boss.current_phase || 1)));
   let bossClip = `phase_${phase}`;
   if (currentHp <= 0) bossClip = "defeated";
   else if (previousBossHp !== null && currentHp < previousBossHp) bossClip = previousBossHp - currentHp >= maxHp * 0.02 ? "heavy_hit" : "hit";
   else if (previousBossPhase !== null && phase !== previousBossPhase) bossClip = "phase_change";
-  setActor("boss-actor", "boss", "pumpkin_king", bossClip, "🎃");
+  setActor("boss-actor", "boss", "boss", bossClip, "◆");
   window.clearTimeout(bossTransitionTimer);
   if (["hit", "heavy_hit", "phase_change"].includes(bossClip)) {
-    bossTransitionTimer = window.setTimeout(() => setActor("boss-actor", "boss", "pumpkin_king", `phase_${phase}`, "🎃"), 900);
+    bossTransitionTimer = window.setTimeout(() => setActor("boss-actor", "boss", "boss", `phase_${phase}`, "◆"), 900);
   }
   previousBossHp = currentHp;
   previousBossPhase = phase;
-  document.getElementById("boss-name").textContent = boss.name || "Kürbiskönig";
+  document.getElementById("boss-name").textContent = boss.name || WIDGET_CONFIG.pack.boss.name || "Community Boss";
   document.getElementById("boss-hp").hidden = fieldData.showHpNumbers === false;
   document.getElementById("boss-hp").textContent = `${Math.floor(currentHp).toLocaleString("de-DE")} / ${Math.floor(maxHp).toLocaleString("de-DE")} HP`;
   document.getElementById("boss-percent").hidden = fieldData.showPercentage === false;
@@ -612,8 +585,8 @@ function renderEvent(state) {
   document.getElementById("health-fill").style.width = `${percent}%`;
   const eventState = document.getElementById("event-state");
   eventState.hidden = !paused;
-  eventState.textContent = paused ? "Event pausiert · Fortsetzung erfolgt automatisch" : "";
-  document.getElementById("pumpkin-widget").hidden = false;
+  eventState.textContent = paused ? `${WIDGET_CONFIG.pack.theme.labels.paused || "Event pausiert"} · Fortsetzung erfolgt automatisch` : "";
+  document.getElementById("event-widget").hidden = false;
   document.getElementById("identity-card").hidden = true;
   document.getElementById("boss-card").hidden = false;
   renderMinion(paused ? null : currentMinion(state));
@@ -697,10 +670,10 @@ function queueRefresh(reconnectRealtime) {
   void refreshWidget(reconnectRealtime);
 }
 
-function parseBossCommand(value) {
+function parseBossCommand(value, command = "!boss") {
   if (typeof value !== "string") return null;
   const tokens = value.trim().split(/\s+/).filter(Boolean);
-  if (!tokens.length || tokens[0].toLowerCase() !== "!boss" || tokens.length > 2) return null;
+  if (!tokens.length || tokens[0].toLowerCase() !== String(command).trim().toLowerCase() || tokens.length > 2) return null;
   return { answer: tokens[1]?.toLowerCase() || null };
 }
 
@@ -718,7 +691,7 @@ async function handleStreamElementsChatMessage(event) {
   const minion = currentMinion(lastSafeState);
   if (!minion || minion.status !== "active" || Date.now() < milliseconds(minion.accepts_answers_at) || Date.now() >= milliseconds(minion.expires_at)) return;
   const action = extractChatAction(event);
-  if (!action || !parseBossCommand(action.text)) return;
+  if (!action || !parseBossCommand(action.text, minion.command || packMinion(minion.key)?.command)) return;
   const response = await fetch(`${WIDGET_CONFIG.supabaseUrl}/functions/v1/minion-action`, {
     method: "POST",
     headers: {
@@ -749,8 +722,10 @@ function showVisualCurse(visualCurse) {
   }, durationMs);
 }
 
-async function runTestAction(action) {
+async function runTestAction(descriptor) {
   if (!WIDGET_CONFIG.testControls || !identity.testActionsAuthorized || identity.status !== "resolved") return;
+  const request = typeof descriptor === "string" ? { action: descriptor } : descriptor;
+  if (!request?.action) return;
   const response = await fetch(`${WIDGET_CONFIG.supabaseUrl}/functions/v1/widget-test-action`, {
     method: "POST",
     headers: {
@@ -759,14 +734,14 @@ async function runTestAction(action) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      action,
+      ...request,
       eventSlug: WIDGET_CONFIG.eventSlug,
       channelUsername,
       requestId: crypto.randomUUID(),
     }),
   });
   const payload = await response.json().catch(() => ({}));
-  lastTestMessage = response.ok ? `${action}: ok` : `${action}: ${payload.error || response.status}`;
+  lastTestMessage = response.ok ? `${request.action}: ok` : `${request.action}: ${payload.error || response.status}`;
   if (response.ok && payload?.data?.visualCurse) showVisualCurse(payload.data.visualCurse);
   updateDiagnostics();
   if (response.ok) queueRefresh(false);
@@ -785,7 +760,7 @@ function testTickHeartbeat() {
   const interval = hasRuntimeMinion ? ACTIVE_TEST_TICK_MS : IDLE_TEST_TICK_MS;
   if (Date.now() - lastTestTickAt < interval) return;
   lastTestTickAt = Date.now();
-  void runTestAction("tick");
+  void runTestAction({ action: "tick" });
 }
 
 async function detectEditorMode() {
@@ -795,7 +770,7 @@ async function detectEditorMode() {
   } catch {
     editorMode = false;
   }
-  if (diagnosticsVisible()) document.getElementById("pumpkin-widget").hidden = false;
+  if (diagnosticsVisible()) document.getElementById("event-widget").hidden = false;
   updateDiagnostics();
 }
 

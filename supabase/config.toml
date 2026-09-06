@@ -1,4 +1,4 @@
-project_id = "kuerbiskoenig-community-boss"
+project_id = "pxb-community-event-engine"
 
 [api]
 enabled = true

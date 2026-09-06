@@ -2277,7 +2277,7 @@ body:has(.overlay-page) {
 .minion-visual span.is-target { border-color: var(--gold); box-shadow: 0 0 14px rgba(216, 163, 93, 0.32); }
 .minion-visual span small, .minion-visual span b { color: var(--bone); font-size: 8px; }
 .minion-visual--directions span { min-width: 58px; }
-.minion-visual--bats span { border: 0; min-width: 22px; font-size: 20px; }
+.minion-visual--swarm span { border: 0; min-width: 22px; font-size: 20px; }
 .minion-question { display: grid; gap: 3px; margin: 7px 0; }
 .minion-question strong { color: var(--bone); font-size: 11px; line-height: 1.35; }
 .minion-question span { color: #c7beb1; font-size: 9px; }
@@ -2297,18 +2297,18 @@ body:has(.overlay-page) {
 .curse-phase-3 { --curse-intensity: 1; }
 .curse-phase-4 { --curse-intensity: 1.1; }
 .curse-layer--fog { background: repeating-radial-gradient(ellipse at 20% 80%, rgba(215, 221, 219, 0.17) 0 5%, transparent 12% 22%); animation: fog-drift 7s linear infinite; }
-.curse-layer--zombie_hands .curse-particle { bottom: -3%; width: 8%; height: 28%; border-radius: 45% 45% 15% 15%; background: #33452e; }
-.curse-layer--zombie_hands .curse-particle--one { left: 8%; transform: rotate(-18deg); }
-.curse-layer--zombie_hands .curse-particle--two { left: 45%; }
-.curse-layer--zombie_hands .curse-particle--three { right: 7%; transform: rotate(18deg); }
-.curse-layer--spider_web { background: repeating-conic-gradient(from 0deg at 0 0, rgba(230, 230, 222, 0.18) 0 1deg, transparent 1deg 18deg); clip-path: polygon(0 0, 32% 0, 16% 22%, 0 38%, 0 100%, 22% 100%, 10% 85%, 0 70%, 0 38%, 0 0, 100% 0, 100% 35%, 88% 20%, 70% 0); }
-.curse-layer--witch_distortion { background: linear-gradient(120deg, rgba(105, 32, 128, 0.18), transparent 45%, rgba(84, 128, 40, 0.16)); animation: witch-wave 2.6s ease-in-out infinite; }
-.curse-layer--bat_attack .curse-particle::before { content: "🦇🦇🦇🦇"; font-size: 34px; white-space: nowrap; }
-.curse-layer--bat_attack .curse-particle--one { top: 12%; animation: bats-across 3s linear infinite; }
-.curse-layer--bat_attack .curse-particle--two { top: 55%; animation: bats-across 4s linear 0.5s infinite; }
-.curse-layer--bat_attack .curse-particle--three { top: 78%; animation: bats-across 3.4s linear 1s infinite; }
-.curse-layer--darkness, .curse-layer--royal_curse { background: radial-gradient(circle at center, transparent 25%, rgba(0, 0, 0, 0.72) 100%); }
-.curse-layer--royal_curse::after { content: "◉     ◉"; position: absolute; top: 12%; left: 50%; transform: translateX(-50%); color: #ff7b25; font-size: 40px; filter: drop-shadow(0 0 10px #ff6a00); animation: curse-pulse 1.4s ease-in-out infinite; }
+.curse-layer--edge-hands .curse-particle { bottom: -3%; width: 8%; height: 28%; border-radius: 45% 45% 15% 15%; background: #33452e; }
+.curse-layer--edge-hands .curse-particle--one { left: 8%; transform: rotate(-18deg); }
+.curse-layer--edge-hands .curse-particle--two { left: 45%; }
+.curse-layer--edge-hands .curse-particle--three { right: 7%; transform: rotate(18deg); }
+.curse-layer--edge-web { background: repeating-conic-gradient(from 0deg at 0 0, rgba(230, 230, 222, 0.18) 0 1deg, transparent 1deg 18deg); clip-path: polygon(0 0, 32% 0, 16% 22%, 0 38%, 0 100%, 22% 100%, 10% 85%, 0 70%, 0 38%, 0 0, 100% 0, 100% 35%, 88% 20%, 70% 0); }
+.curse-layer--color-distortion { background: linear-gradient(120deg, rgba(105, 32, 128, 0.18), transparent 45%, rgba(84, 128, 40, 0.16)); animation: witch-wave 2.6s ease-in-out infinite; }
+.curse-layer--flying-swarm .curse-particle::before { content: "◆ ◆ ◆ ◆"; font-size: 34px; white-space: nowrap; }
+.curse-layer--flying-swarm .curse-particle--one { top: 12%; animation: bats-across 3s linear infinite; }
+.curse-layer--flying-swarm .curse-particle--two { top: 55%; animation: bats-across 4s linear 0.5s infinite; }
+.curse-layer--flying-swarm .curse-particle--three { top: 78%; animation: bats-across 3.4s linear 1s infinite; }
+.curse-layer--dark-vignette, .curse-layer--royal-vignette { background: radial-gradient(circle at center, transparent 25%, rgba(0, 0, 0, 0.72) 100%); }
+.curse-layer--royal-vignette::after { content: "◉     ◉"; position: absolute; top: 12%; left: 50%; transform: translateX(-50%); color: #ff7b25; font-size: 40px; filter: drop-shadow(0 0 10px #ff6a00); animation: curse-pulse 1.4s ease-in-out infinite; }
 .curse-particle { position: absolute; display: block; }
 
 .minion-debugger .minion-spawn-form { grid-template-columns: 220px 1fr; }

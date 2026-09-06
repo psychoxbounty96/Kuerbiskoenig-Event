@@ -1,5 +1,6 @@
 import {
   BROADCAST_CHANNEL,
+  ACTIVE_EVENT_PACK,
   calculateBossPhase,
   MAX_LOG_ENTRIES,
   MINION_TYPES,
@@ -751,6 +752,8 @@ export class MockDataProvider implements DataProvider {
       return { ok: false, message: "Raid benötigt zwei verschiedene, aktivierte Streamer mit Twitch-ID." };
     }
     const viewers = Math.max(0, Math.floor(viewerCount));
+    const raidSpecialKey = ACTIVE_EVENT_PACK.scheduling.raidSpecialMinionKey;
+    if (!raidSpecialKey || !MINION_TYPES[raidSpecialKey]) return { ok: false, message: "Dieses Event-Pack definiert keine Raid-Begegnung." };
     const raidId = createId("raid");
     this.commit((draft) => {
       draft.twitch.recentRaids.unshift({
@@ -767,8 +770,8 @@ export class MockDataProvider implements DataProvider {
       draft.twitch.recentRaids = draft.twitch.recentRaids.slice(0, 10);
       const scheduledFor = Date.now() + calculateRaidSpecialDelaySeconds() * 1_000;
       draft.minions.unshift(createMinionInstance({
-        typeId: "kings_herald",
-        instanceId: createId("kings-herald"),
+        typeId: raidSpecialKey,
+        instanceId: createId("raid-special"),
         streamer: to,
         viewerSamples: [to.currentViewerCount, Math.max(to.currentViewerCount, viewers)],
         phase: draft.boss.phase,
@@ -779,7 +782,7 @@ export class MockDataProvider implements DataProvider {
       }));
       addLog(draft, { type: "twitch", actor: this.adminSession.email, message: `Test-Raid ${from.displayName} → ${to.displayName} (${viewers}) gespeichert – ohne Bonus` });
     });
-    return { ok: true, message: "Test-Raid gespeichert; Herold in 90–120 Sekunden geplant. Kein direkter Raid-Schaden." };
+    return { ok: true, message: "Test-Raid gespeichert; die konfigurierte Raid-Begegnung wurde verzögert geplant. Kein direkter Raid-Schaden." };
   }
 
   async observeExpiredMinion(instanceId: string) {

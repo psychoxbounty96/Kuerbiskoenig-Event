@@ -1,0 +1,235 @@
+{
+  "widgetName": {
+    "type": "hidden",
+    "value": "PXB Community Event Engine"
+  },
+  "overlayScale": {
+    "type": "slider",
+    "label": "Overlay Scale",
+    "value": 100,
+    "min": 50,
+    "max": 150,
+    "step": 5,
+    "group": "OVERLAY"
+  },
+  "alignment": {
+    "type": "dropdown",
+    "label": "Alignment",
+    "value": "left",
+    "options": {
+      "left": "Left",
+      "right": "Right"
+    },
+    "group": "OVERLAY"
+  },
+  "showHpNumbers": {
+    "type": "checkbox",
+    "label": "Show HP numbers",
+    "value": true,
+    "group": "OVERLAY"
+  },
+  "showPercentage": {
+    "type": "checkbox",
+    "label": "Show percentage",
+    "value": true,
+    "group": "OVERLAY"
+  },
+  "reducedMotion": {
+    "type": "checkbox",
+    "label": "Reduce animations",
+    "value": false,
+    "group": "OVERLAY"
+  },
+  "showDebugPanel": {
+    "type": "checkbox",
+    "label": "Editor diagnostics",
+    "value": true,
+    "group": "🛠 DEBUG"
+  },
+  "testReloadState": {
+    "type": "button",
+    "label": "Reload Boss State",
+    "value": "Reload Boss State",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testRunTick": {
+    "type": "button",
+    "label": "Run Encounter Tick",
+    "value": "Run Encounter Tick",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testViewerSample": {
+    "type": "button",
+    "label": "Create Test Viewer Sample",
+    "value": "Create Test Viewer Sample",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testPassiveTick": {
+    "type": "button",
+    "label": "Run Passive Damage Tick",
+    "value": "Run Passive Damage Tick",
+    "group": "🧪 GENERAL TESTS"
+  },
+  "testBossHit": {
+    "type": "button",
+    "label": "Test Boss Hit (-1,000)",
+    "value": "Test Boss Hit (-1,000)",
+    "group": "👑 BOSS TESTS"
+  },
+  "testBossBigHit": {
+    "type": "button",
+    "label": "Test Boss Big Hit (-25,000)",
+    "value": "Test Boss Big Hit (-25,000)",
+    "group": "👑 BOSS TESTS"
+  },
+  "testResetBoss": {
+    "type": "button",
+    "label": "Reset Test Boss",
+    "value": "Reset Test Boss",
+    "group": "👑 BOSS TESTS"
+  },
+  "testForceSuccess": {
+    "type": "button",
+    "label": "Force Current Encounter Success",
+    "value": "Force Current Encounter Success",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testForceFailure": {
+    "type": "button",
+    "label": "Force Current Encounter Failure",
+    "value": "Force Current Encounter Failure",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testCancelMinion": {
+    "type": "button",
+    "label": "Cancel Current Encounter",
+    "value": "Cancel Current Encounter",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testExpireMinion": {
+    "type": "button",
+    "label": "Expire Current Encounter",
+    "value": "Expire Current Encounter",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testRaid": {
+    "type": "button",
+    "label": "Simulate Eligible Raid",
+    "value": "Simulate Eligible Raid",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testSpecialNow": {
+    "type": "button",
+    "label": "Spawn Raid Special Now",
+    "value": "Spawn Raid Special Now",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testPhase_1": {
+    "type": "button",
+    "label": "Phase 1: Das Erwachen",
+    "value": "Phase 1: Das Erwachen",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase_2": {
+    "type": "button",
+    "label": "Phase 2: Der Fluch",
+    "value": "Phase 2: Der Fluch",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase_3": {
+    "type": "button",
+    "label": "Phase 3: Die Dunkelheit",
+    "value": "Phase 3: Die Dunkelheit",
+    "group": "👑 BOSS TESTS"
+  },
+  "testPhase_4": {
+    "type": "button",
+    "label": "Phase 4: Der Untergang",
+    "value": "Phase 4: Der Untergang",
+    "group": "👑 BOSS TESTS"
+  },
+  "testEncounter_ghost": {
+    "type": "button",
+    "label": "👻 Rastloser Geist",
+    "value": "👻 Rastloser Geist",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_zombie_horde": {
+    "type": "button",
+    "label": "🧟 Zombiehorde",
+    "value": "🧟 Zombiehorde",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_spider_queen": {
+    "type": "button",
+    "label": "🕷️ Spinnenkönigin",
+    "value": "🕷️ Spinnenkönigin",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_witch": {
+    "type": "button",
+    "label": "🧙 Die Hexe",
+    "value": "🧙 Die Hexe",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_bat_swarm": {
+    "type": "button",
+    "label": "🦇 Fledermausschwarm",
+    "value": "🦇 Fledermausschwarm",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_reaper": {
+    "type": "button",
+    "label": "💀 Der Sensenmann",
+    "value": "💀 Der Sensenmann",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEncounter_kings_herald": {
+    "type": "button",
+    "label": "👑 Herold des Königs",
+    "value": "👑 Herold des Königs",
+    "group": "⚔️ ENCOUNTER TESTS"
+  },
+  "testEffect_fog": {
+    "type": "button",
+    "label": "Test Geisternebel (visual only)",
+    "value": "Test Geisternebel (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_zombie_hands": {
+    "type": "button",
+    "label": "Test Zombiehände (visual only)",
+    "value": "Test Zombiehände (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_spider_web": {
+    "type": "button",
+    "label": "Test Spinnenbefall (visual only)",
+    "value": "Test Spinnenbefall (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_witch_distortion": {
+    "type": "button",
+    "label": "Test Hexenfluch (visual only)",
+    "value": "Test Hexenfluch (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_bat_attack": {
+    "type": "button",
+    "label": "Test Fledermausangriff (visual only)",
+    "value": "Test Fledermausangriff (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_darkness": {
+    "type": "button",
+    "label": "Test Dunkelheit (visual only)",
+    "value": "Test Dunkelheit (visual only)",
+    "group": "✨ EFFECT TESTS"
+  },
+  "testEffect_royal_curse": {
+    "type": "button",
+    "label": "Test Königlicher Fluch (visual only)",
+    "value": "Test Königlicher Fluch (visual only)",
+    "group": "✨ EFFECT TESTS"
+  }
+}

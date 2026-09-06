@@ -1,13 +1,11 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { DAMAGE_PRESETS, getPhaseTargetHp, MINION_TYPES, PHASES } from "../lib/config";
+import { ACTIVE_EVENT_PACK, DAMAGE_PRESETS, getPackAssetUrl } from "../lib/config";
 import { formatLogTime, formatNumber, formatPercent } from "../lib/format";
 import { stateProvider, useAdminSession, useEventData } from "../lib/state-provider";
 import type { ActionResult, StreamerInput, StreamerState } from "../lib/types";
 import { isOpenMinionStatus } from "../lib/minion-engine";
-
-const ASSET_MANIFEST_URL = `${import.meta.env.BASE_URL}assets/widget-assets.json`;
 
 function readNumber(value: FormDataEntryValue | null) {
   return Number(String(value ?? "").replace(/\./g, "").replace(",", "."));
@@ -118,11 +116,8 @@ export default function AdminPage() {
     const controller = new AbortController();
     async function inspectAssets() {
       try {
-        const response = await fetch(ASSET_MANIFEST_URL, { cache: "no-cache", signal: controller.signal });
-        if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
-        const manifest = await response.json() as { version?: number; boss?: { url?: string }; minions?: Record<string, { url?: string }> };
-        const urls = [manifest.boss?.url, ...Object.values(manifest.minions ?? {}).map((asset) => asset.url)]
-          .filter((url): url is string => Boolean(url));
+        const urls = [getPackAssetUrl(ACTIVE_EVENT_PACK.boss.asset), ...ACTIVE_EVENT_PACK.minions.map((item) => getPackAssetUrl(item.asset))]
+          .filter(Boolean);
         const checks = await Promise.all(urls.map(async (url) => {
           try {
             const asset = await fetch(url, { method: "HEAD", cache: "no-cache", signal: controller.signal });
@@ -131,9 +126,9 @@ export default function AdminPage() {
         }));
         const loaded = checks.filter(Boolean).length;
         setAssetHealth({
-          status: loaded === urls.length && urls.length === 8 ? "healthy" : "warning",
-          version: String(manifest.version ?? "–"), loaded, total: urls.length,
-          detail: loaded === urls.length ? "Boss und sieben Minion-Artworks erreichbar." : `${urls.length - loaded} Asset(s) nicht erreichbar. Widget-Fallback bleibt aktiv.`,
+          status: loaded === urls.length && urls.length > 0 ? "healthy" : "warning",
+          version: ACTIVE_EVENT_PACK.version, loaded, total: urls.length,
+          detail: loaded === urls.length ? "Alle Pack-Assets erreichbar." : `${urls.length - loaded} Asset(s) nicht erreichbar. Widget-Fallback bleibt aktiv.`,
         });
       } catch (error) {
         if (!controller.signal.aborted) setAssetHealth({ status: "error", version: "–", loaded: 0, total: 0, detail: error instanceof Error ? error.message : "Assetprüfung fehlgeschlagen" });
@@ -349,8 +344,11 @@ export default function AdminPage() {
 
           <div className="admin-action-row">
             <label htmlFor="phase-select">Phasengrenze testen</label>
-            <select id="phase-select" value={state.boss.phase} disabled={!canMutate} onChange={(event) => void run(stateProvider.adminSetBossHp(getPhaseTargetHp(Number(event.target.value) as 1 | 2 | 3 | 4, state.boss.maxHp)))}>
-              {PHASES.map((phase) => <option key={phase.id} value={phase.id}>Phase {phase.roman} – {phase.name}</option>)}
+            <select id="phase-select" value={state.boss.phase} disabled={!canMutate} onChange={(event) => {
+              const phase = state.phases.find((candidate) => candidate.id === Number(event.target.value));
+              if (phase) void run(stateProvider.adminSetBossHp(Math.round(state.boss.maxHp * phase.maxPercent / 100)));
+            }}>
+              {state.phases.map((phase) => <option key={phase.id} value={phase.id}>Phase {phase.id} – {phase.name}</option>)}
             </select>
           </div>
 
@@ -406,7 +404,7 @@ export default function AdminPage() {
               {enabledStreamers.map((streamer) => <option key={streamer.id} value={streamer.id}>{streamer.displayName}</option>)}
             </select>
             <div className="minion-spawn-buttons">
-              {Object.values(MINION_TYPES).map((definition) => <button key={definition.id} type="button" disabled={!canMutate || !streamerId} onClick={() => void run(stateProvider.adminSpawnMinion(definition.id, streamerId, { force: true }))}>
+              {state.minionDefinitions.filter((definition) => definition.enabled).map((definition) => <button key={definition.id} type="button" disabled={!canMutate || !streamerId} onClick={() => void run(stateProvider.adminSpawnMinion(definition.key, streamerId, { force: true }))}>
                 {definition.icon} {definition.name}
               </button>)}
             </div>
@@ -534,7 +532,7 @@ export default function AdminPage() {
           <div className="panel-heading"><div><small>ASSETS & WIDGET</small><h2>Live-Asset-Diagnose</h2></div><span className={`twitch-health twitch-health--${assetHealth.status}`}>{assetHealth.status}</span></div>
           <div className="twitch-health-grid">
             <article><small>Widget Build</small><strong>v0.5.0</strong><span>Standalone HTML / CSS / JS / Fields</span></article>
-            <article><small>Asset-Manifest</small><strong>v{assetHealth.version}</strong><span>{ASSET_MANIFEST_URL}</span></article>
+            <article><small>Event-Pack</small><strong>v{assetHealth.version}</strong><span>{state.event.packKey}</span></article>
             <article><small>HTTPS Assets</small><strong>{assetHealth.loaded} / {assetHealth.total}</strong><span>{assetHealth.detail}</span></article>
           </div>
           <p className="admin-hint">Die Runtime lädt ausschließlich stabile HTTPS-URLs. Bei einem Ladefehler bleibt das Overlay aktiv und fällt auf statisches Artwork oder Symbol-UI zurück.</p>
